@@ -58,9 +58,23 @@ one plugin rather than two: `conventions.md` changes often, and two copies would
 Windows, PowerShell, and a local PRO client install. The scaffolder writes `.cs` files to disk and
 the skills read the PRO local cache, so this only works in Claude Code — not in claude.ai chat.
 
+## Using it? Add yourself
+
+Please add a line to [USERS.md](USERS.md) when you start using this, and open an issue or ping
+Andrew if something in it is wrong.
+
+This is not a vanity metric. The conventions in `shared/references/` change as we learn things —
+the Dragon spoken-form rules, the named-list translation rule and the Material ligature addressing
+all changed after scripts had already been written against the old version. When that happens, the
+list is how anyone knows who to tell. Without it the only signal is GitHub clone traffic, which is
+anonymous and only covers 14 days.
+
 ## Editing it
 
 The scaffolder and templates are plain files; change them in place and the next run picks them up.
 When something is learned on a real integration — a new addressing shape, a vendor gotcha, a
 convention correction — put it in `shared/references/` rather than leaving it in a chat log. That
 is what keeps this worth installing.
+
+If the change alters a convention rather than adding to one, say so in the commit message and tell
+whoever is on `USERS.md` — scripts already generated against the old rule will not fix themselves.
