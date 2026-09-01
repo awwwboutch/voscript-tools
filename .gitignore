@@ -1,0 +1,11 @@
+# Generated starter script sets — these belong in the integration's own project folder,
+# not in the plugin repo. Anchored to the repo root so they never match anything under
+# plugins/*/shared/templates/, which is the source material and must be committed.
+/VOScript.Starter.*.cs
+/*NamedLists.txt
+
+# Windows / editor noise
+Thumbs.db
+desktop.ini
+.vs/
+*.user

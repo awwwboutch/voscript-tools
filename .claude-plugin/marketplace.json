@@ -1,0 +1,14 @@
+{
+  "name": "voicebrook",
+  "owner": {
+    "name": "Voicebrook"
+  },
+  "plugins": [
+    {
+      "name": "voscript-tools",
+      "source": "./plugins/voscript-tools",
+      "description": "Scaffold and reference for VoiceOver PRO starter script sets - IMS/viewer integrations and LIS reporting integrations.",
+      "version": "0.1.0"
+    }
+  ]
+}

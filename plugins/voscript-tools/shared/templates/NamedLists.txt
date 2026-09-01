@@ -1,0 +1,118 @@
+NAMED LISTS - {{Namespace}} ({{Vendor}})
+Generated {{Date}} by the voscript-starter skill.
+
+Format is  Text\Spoken form
+  Text          the value the script receives from SpeechParams.TranslateSingle()
+  Spoken form   what the pathologist says, written to the Dragon rules below
+
+To accept more than one way of saying the same thing, pipe-separate the spoken forms:
+  0.1x\point one X|zero point one X
+
+Each block below is ready to copy and paste into the Global Named List Manager. Delete any list
+this system does not support rather than leaving it half-filled, and replace every TODO with a
+value read off the live application.
+
+A translation holds ONLY the part of the phrase that varies. The invariant words live in the
+command trigger, so "zoom <{{System}}Magnification>" means the list holds 20x, never Zoom to 20x.
+If the on-screen caption needs more than the spoken value, compose it in the script.
+
+
+--------------------------------------------------------------------------------
+{{System}}CaseType
+  Used by  _CaseNumber / CaseNumber / DictateSection (property CaseTypeList)
+  Trigger  <{{System}}CaseType> [<Year> | ] [<Digit>|1-5]
+  Text is the case-type prefix built into the accession number. This list also needs its
+  Target column set to the Report Builder template for that case type.
+--------------------------------------------------------------------------------
+TODO S\surgical
+TODO SP\S P|surgical pathology
+TODO C\cytology
+TODO H\hematology
+TODO D\dermatology
+
+
+--------------------------------------------------------------------------------
+{{System}}Magnification
+  Used by  SetMagnificationLevel (property MagnificationList)
+  Trigger  zoom <{{System}}Magnification>
+  Delete any level this viewer does not offer. Confirmed house spoken forms.
+--------------------------------------------------------------------------------
+0.1x\point one X|zero point one X
+0.2x\point two X|zero point two X
+0.5x\point five X|zero point five X
+1x\one X
+2x\two X
+4x\four X
+10x\ten X
+20x\twenty X
+40x\forty X
+In\in
+Out\out
+Reset\reset
+
+
+--------------------------------------------------------------------------------
+{{System}}MarkupButtons
+  Used by  SlideMarkup (property MarkupList)
+  Trigger  <{{System}}MarkupButtons>
+  Text must match the annotation control's on-screen name exactly - SlideMarkup finds the
+  control by that name. Read the real captions off the toolbar before filling these in.
+--------------------------------------------------------------------------------
+TODO Rectangle\rectangle
+TODO Ellipse\ellipse
+TODO Arrow\arrow
+TODO Freeform\freeform
+TODO Ruler\ruler
+TODO Pin\pin
+
+
+--------------------------------------------------------------------------------
+{{System}}MarkupLayers
+  Used by  SlideMarkup (property LayerList)
+  DELETE THIS LIST if {{Vendor}} has no annotation layers, and leave the LayerList property
+  blank on the command. Halo has layers; most viewers do not.
+--------------------------------------------------------------------------------
+TODO Benign\benign
+TODO Malignant\malignant
+
+
+--------------------------------------------------------------------------------
+{{System}}Tabs
+  Used by  ShowTab (property TabList)
+  Trigger  show <${{System}}Tabs>
+  Text is usually the tab's on-screen name. Where the tray icons carry no accessible name,
+  Text is a sibling offset from a fixed anchor instead and these values are integers.
+  DELETE THIS LIST if the viewer has no tabbed panels worth a voice command.
+--------------------------------------------------------------------------------
+TODO Case information\case info
+TODO Annotations\annotations
+TODO Assays\assays
+
+
+--------------------------------------------------------------------------------
+SHARED LISTS - DO NOT CREATE
+--------------------------------------------------------------------------------
+Digit          digits spoken in an accession number
+Year           two-digit year
+NextPrevious   next / previous - NavigateSlides, NavigateCases
+$Sections      report sections - DictateSection
+
+These already exist globally and are used by the triggers above. Listed only so nobody
+recreates them under a system-specific name.
+
+
+--------------------------------------------------------------------------------
+DRAGON SPOKEN FORM RULES
+--------------------------------------------------------------------------------
+  No punctuation           0.1x\point one X       not  0.1X
+  Numbers written as words 20x\twenty X           not  20X
+  Acronyms spaced out,
+  letters capitalised      MRN\M R N              not  MRN
+  Multiple spoken forms
+  are pipe-separated       0.1x\point one X|zero point one X
+
+Text keeps whatever casing and punctuation the script or the UI needs. Only the spoken form
+follows these rules.
+
+Some lists already in GlobalSetup predate this and hold spoken forms like "10X" and "point 1X".
+Do not copy them as a pattern - write new lists to the rules above.
