@@ -16,7 +16,6 @@ namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
     [ExtensionCommandClass(HelpText = "Sets the viewer magnification from the spoken level. Trigger: zoom, followed by the {{System}}Magnification named list.")]
-    [ExtensionStringProperty("MagnificationList", DefaultValue = "{{System}}Magnification", HelpText = "Named list of magnifications. Translations hold only the variable part - 20x, In, Reset - not the whole menu caption.")]
 #endregion PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
 
 // CLASSDEF: KEEP THE NEXT LINE IN 'public class ScriptName : BaseClassName' FORMAT
@@ -40,7 +39,7 @@ namespace {{Namespace}}
             // TODO: if this vendor's captions are not the bare magnification, add the composition,
             // e.g. menuItem = "Zoom to " + magnificationLevel, with explicit cases for any level
             // the vendor words differently.
-            string magnificationLevel = SpeechParams.TranslateSingle(Property("MagnificationList", "{{System}}Magnification"));
+            string magnificationLevel = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
 
             string titlePage = _{{System}}.FindCurrentTitlePageByRegex(Application, _{{System}}.CaseNumberTitlePattern);
             using var manager = new Browser.Manager.BrowserManager(titlePage);

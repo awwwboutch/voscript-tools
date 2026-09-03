@@ -14,8 +14,6 @@ namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
     [ExtensionCommandClass(HelpText = "Presses a markup button in the viewer so the user can draw an annotation. Trigger: the {{System}}MarkupButtons named list")]
-    [ExtensionStringProperty("MarkupList", DefaultValue = "{{System}}MarkupButtons", HelpText = "Name of the annotation tool named list.")]
-    [ExtensionStringProperty("LayerList", DefaultValue = "{{System}}MarkupLayers", HelpText = "Name of the annotation layer named list. Leave blank if the system has no layers.")]
 #endregion PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
 
 // CLASSDEF: KEEP THE NEXT LINE IN 'public class ScriptName : BaseClassName' FORMAT
@@ -27,13 +25,22 @@ namespace {{Namespace}}
             // Date: {{Date}}
             // Use:
             // This will press one of the markup buttons on the {{Vendor}} toolbar so the user can
-            // then draw an annotation. The named lists translate the spoken tool and layer to
-            // their on-screen names, so adding either is a named-list change, not a script change.
+            // then draw an annotation. The named list translates the spoken tool to its on-screen
+            // name, so adding a tool is a named-list change, not a script change.
             //
             // *****
 
-            string markupType = SpeechParams.TranslateSingle(Property("MarkupList", "{{System}}MarkupButtons"));
-            string layer = SpeechParams.TranslateSingle(Property("LayerList", "{{System}}MarkupLayers"));
+            string markupType = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
+
+            // ONLY if {{Vendor}} has annotation layers, so the command takes two spoken
+            // parameters. Names[0] cannot tell them apart, so a multi-list command is the one case
+            // that names its lists explicitly - and both must then be named, not just the second:
+            //
+            //   string markupType = SpeechParams.TranslateSingle("{{System}}MarkupButtons");
+            //   string layer      = SpeechParams.TranslateSingle("{{System}}MarkupLayers");
+            //
+            // Delete the layer block below along with this comment if there are no layers.
+            string layer = "";
 
             string titlePage = _{{System}}.FindCurrentTitlePageByRegex(Application, _{{System}}.CaseNumberTitlePattern);
             using var manager = new Browser.Manager.BrowserManager(titlePage);

@@ -17,7 +17,6 @@ namespace {{Namespace}}
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
     [ExtensionCommandClass(HelpText = "Opens the spoken case from the {{Vendor}} worklist. Trigger: the {{CaseTypeList}} named list, an optional spoken year, then up to five digits")]
     [ExtensionIntProperty("CounterLength", DefaultValue = 5, HelpText = "Length (in characters) of the case number counter part.")]
-    [ExtensionStringProperty("CaseTypeList", DefaultValue = "{{CaseTypeList}}", HelpText = "Name of the case type named list.")]
     [ExtensionBoolProperty("LeadingZeros", DefaultValue = true, HelpText = "Determines if the case number is constructed with or without leading zeros.")]
     [ExtensionStringProperty("ReportTemplate", DefaultValue = "", HelpText = "Report Builder template. Leave blank to use the template mapped to the spoken case type.")]
     [ExtensionStringProperty("FallbackReportTemplate", DefaultValue = "{{ReportTemplate}}", HelpText = "Template used when the spoken case type has no template mapped to it.")]
@@ -40,7 +39,7 @@ namespace {{Namespace}}
             string caseNumber = _CaseNumber.FormatParameterizedSpeech(
                 SpeechParams,
                 Property("CounterLength", 5),
-                Property("CaseTypeList", "{{CaseTypeList}}"),
+                "{{CaseTypeList}}",
                 Property("LeadingZeros", true));
 
             caseNumber = NormalizeCaseNumber(caseNumber);
@@ -150,7 +149,7 @@ namespace {{Namespace}}
 
             try
             {
-                string mapped = SpeechParams.TranslateToParams(Property("CaseTypeList", "{{CaseTypeList}}")).Target;
+                string mapped = SpeechParams.TranslateToParams("{{CaseTypeList}}").Target;
 
                 if (!string.IsNullOrWhiteSpace(mapped))
                     return mapped;

@@ -87,6 +87,35 @@ TranslationParams p = Application.FindTranslationParams("HaloCaseType", "SP");
 `.Translation` is what the list maps the spoken word to. `.Target` is the secondary column,
 used to carry the Report Builder template for a case type.
 
+### Read the list with `SpeechParams.Names[0]`
+
+```csharp
+string spoken = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
+```
+
+That is the default and it covers nearly every command. The trigger in the palette already names
+the list, so `Names[0]` follows whatever list the trigger uses. The script never needs to know the
+list's name.
+
+**Do not put the list name in a palette property.** A `[ExtensionStringProperty("MagnificationList",
+DefaultValue = "HaloMagnification")]` read back as `Property("MagnificationList", ...)` adds a layer
+that can only go wrong: a typo in the property name silently returns the default forever, and the
+value duplicates something the trigger already states. It shipped that way in one template and had
+to be unwound.
+
+**Do not hardcode the list name either**, unless you are in the one exception below. A literal
+`TranslateSingle("HaloMagnification")` still works, but it breaks the moment a site points the
+trigger at a differently-named list.
+
+**The exception is a command that reads more than one named list.** `Names[0]` cannot tell two
+spoken parameters apart, so those name their lists explicitly — and all of them, not just the
+second:
+
+- `_CaseNumber` — the canonical case. It reads the case type, `Year` and `Digit` in one command.
+- A `SlideMarkup` on a system with annotation layers — tool and layer in one command.
+
+Everything else uses `Names[0]`.
+
 Named lists are per-system. The house names are `<System>CaseType`, `<System>Magnification`,
 `<System>MarkupButtons`, `<System>Rotation`. `Digit`, `Year` and `NextPrevious` are shared.
 
