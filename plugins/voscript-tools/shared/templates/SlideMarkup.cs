@@ -13,7 +13,7 @@ using VoiceOver.InternalScripts;
 namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
-    [ExtensionCommandClass(HelpText = "Presses a markup button in the viewer so the user can draw an annotation. Trigger: the {{System}}MarkupButtons named list")]
+    [ExtensionCommandClass(HelpText = "Presses a markup button in the viewer so the user can draw an annotation. Trigger: the {{System}}SlideMarkup named list")]
 #endregion PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
 
 // CLASSDEF: KEEP THE NEXT LINE IN 'public class ScriptName : BaseClassName' FORMAT
@@ -33,17 +33,14 @@ namespace {{Namespace}}
             string markupType = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
 
             // ONLY if {{Vendor}} has annotation layers, so the command takes two spoken
-            // parameters. Index them by their position in the trigger phrase rather than naming
-            // the lists, so the script stays independent of what the lists are called:
+            // parameters. Name both lists explicitly and delete the Names[0] line above:
             //
-            //   // Trigger: <{{System}}MarkupLayers> <{{System}}MarkupButtons>
-            //   string layer      = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
-            //   string markupType = SpeechParams.TranslateSingle(SpeechParams.Names[1]);
+            //   string markupType = SpeechParams.TranslateSingle("{{System}}SlideMarkup");
+            //   string layer      = SpeechParams.TranslateSingle("{{System}}MarkupLayers");
             //
-            // TODO if you enable this: state the trigger's parameter order in a comment above the
-            // indexes, as shown. The indexes are only correct for that order, and reordering the
-            // trigger in the palette silently swaps them - the command then sets a layer named
-            // "Rectangle" rather than failing.
+            // Name them rather than indexing by position, because a layer is usually optional -
+            // and when it is not spoken, everything after it shifts down an index. The tool would
+            // be Names[0] on one utterance and Names[1] on the next. Naming is stable either way.
             //
             // Delete the layer block below along with this comment if there are no layers.
             string layer = "";

@@ -13,7 +13,7 @@ this system does not support rather than leaving it half-filled, and replace eve
 value read off the live application.
 
 A translation holds ONLY the part of the phrase that varies. The invariant words live in the
-command trigger, so "zoom <{{System}}Magnification>" means the list holds 20x, never Zoom to 20x.
+command trigger, so "zoom <{{System}}Magnifications>" means the list holds 20x, never Zoom to 20x.
 If the on-screen caption needs more than the spoken value, compose it in the script.
 
 
@@ -32,9 +32,9 @@ TODO D\dermatology
 
 
 --------------------------------------------------------------------------------
-{{System}}Magnification
-  Used by  SetMagnificationLevel (property MagnificationList)
-  Trigger  zoom <{{System}}Magnification>
+{{System}}Magnifications
+  Used by  SetMagnificationLevel
+  Trigger  zoom <{{System}}Magnifications>
   Delete any level this viewer does not offer. Confirmed house spoken forms.
 --------------------------------------------------------------------------------
 0.1x\point one X|zero point one X
@@ -52,9 +52,9 @@ Reset\reset
 
 
 --------------------------------------------------------------------------------
-{{System}}MarkupButtons
-  Used by  SlideMarkup (property MarkupList)
-  Trigger  <{{System}}MarkupButtons>
+{{System}}SlideMarkup
+  Used by  SlideMarkup
+  Trigger  <{{System}}SlideMarkup>
   Text must match the annotation control's on-screen name exactly - SlideMarkup finds the
   control by that name. Read the real captions off the toolbar before filling these in.
 --------------------------------------------------------------------------------
@@ -68,9 +68,11 @@ TODO Pin\pin
 
 --------------------------------------------------------------------------------
 {{System}}MarkupLayers
-  Used by  SlideMarkup (property LayerList)
-  DELETE THIS LIST if {{Vendor}} has no annotation layers, and leave the LayerList property
-  blank on the command. Halo has layers; most viewers do not.
+  Used by  SlideMarkup
+  DELETE THIS LIST if {{Vendor}} has no annotation layers, and delete the layer block from
+  SlideMarkup.cs. Halo has layers; most viewers do not. When a system does have them,
+  SlideMarkup names both lists explicitly rather than indexing, because the layer is
+  usually optional and an omitted parameter shifts every index after it.
 --------------------------------------------------------------------------------
 TODO Benign\benign
 TODO Malignant\malignant
@@ -78,7 +80,7 @@ TODO Malignant\malignant
 
 --------------------------------------------------------------------------------
 {{System}}Tabs
-  Used by  ShowTab (property TabList)
+  Used by  ShowTab
   Trigger  show <${{System}}Tabs>
   Text is usually the tab's on-screen name. Where the tray icons carry no accessible name,
   Text is a sibling offset from a fixed anchor instead and these values are integers.

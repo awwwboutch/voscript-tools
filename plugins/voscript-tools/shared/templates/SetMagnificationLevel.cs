@@ -15,7 +15,7 @@ using WindowsInput.Native;          // For InputSimulator
 namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
-    [ExtensionCommandClass(HelpText = "Sets the viewer magnification from the spoken level. Trigger: zoom, followed by the {{System}}Magnification named list.")]
+    [ExtensionCommandClass(HelpText = "Sets the viewer magnification from the spoken level. Trigger: zoom, followed by the {{System}}Magnifications named list.")]
 #endregion PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
 
 // CLASSDEF: KEEP THE NEXT LINE IN 'public class ScriptName : BaseClassName' FORMAT
@@ -31,7 +31,7 @@ namespace {{Namespace}}
             //
             // *****
 
-            // The trigger is "zoom <{{System}}Magnification>", so the invariant word lives in the
+            // The trigger is "zoom <{{System}}Magnifications>", so the invariant word lives in the
             // trigger and the named list carries ONLY the part that varies - "20x", "In", "Reset",
             // never "Zoom to 20x". If the control's on-screen caption needs more than the spoken
             // value, compose it here rather than repeating the invariant text on every list row.
@@ -56,7 +56,7 @@ namespace {{Namespace}}
                 IUIAutomationElement caption = _Browser.FindElementOnPage(manager, magnificationLevel, UIAControlType.Text);
 
                 if (caption == null)
-                    throw new ClientException($"Could not find the \"{magnificationLevel}\" zoom control. Check the {{System}}Magnification named list against the viewer toolbar.");
+                    throw new ClientException($"Could not find the \"{magnificationLevel}\" zoom control. Check the {{System}}Magnifications named list against the viewer toolbar.");
 
                 controller.Click(_Browser.GetParent(caption));
             }

@@ -103,28 +103,38 @@ that can only go wrong: a typo in the property name silently returns the default
 value duplicates something the trigger already states. It shipped that way in one template and had
 to be unwound.
 
-**Do not hardcode the list name either.** A literal `TranslateSingle("HaloMagnification")` works,
-and some older scripts do it, but it breaks the moment a site points the trigger at a
-differently-named list.
-
-**More than one spoken parameter? Index by position.** `SpeechParams.Names` is ordered by the
-trigger phrase, so a two-parameter command reads `Names[0]` and `Names[1]` — still without naming
-either list:
+**More than one spoken parameter? Name the lists.** Not `Names[1]`, `Names[2]` — name them:
 
 ```csharp
-// Trigger: <HaloMarkupLayers> <HaloSlideMarkup>
-string layer      = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
-string markupType = SpeechParams.TranslateSingle(SpeechParams.Names[1]);
+string markupType = SpeechParams.TranslateSingle("HaloSlideMarkup");
+string layer      = SpeechParams.TranslateSingle("HaloMarkupLayers");
 ```
 
-State the trigger's parameter order in a comment directly above the indexes. They are correct only
-for that order, and reordering the trigger in the palette silently swaps them rather than failing —
-the command then tries to set a layer called "Rectangle".
+Positional indexing looks tidier and is a trap. A second parameter is usually *optional* — a
+`SlideMarkup` where the layer may or may not be spoken — and when it is omitted, everything after
+it shifts down an index. The tool would be `Names[0]` on one utterance and `Names[1]` on the next.
+Naming is stable regardless of what was spoken.
 
-**The real exception is a command whose parameters are optional or repeat.** Position is not stable
-there, so it must match by name. `_CaseNumber` is the case: its trigger is
-`<CaseType> [<Year> | ] [<Digit>|1-5]`, where `Year` may not be spoken at all and `Digit` repeats
-one to five times. It therefore loops `args.Names` and tests each against the list name:
+This is safe because list names are namespaced per system, so they do not collide and do not move.
+
+**Name the lists `{System}` + purpose.** Halo is the reference:
+
+| List | Read by |
+|---|---|
+| `HaloCaseType` | `_CaseNumber`, `CaseNumber` |
+| `HaloMagnifications` | `SetMagnificationLevel` |
+| `HaloSlideMarkup` | `SlideMarkup` |
+| `HaloMarkupLayers` | `SlideMarkup`, where the system has layers |
+| `HaloRotation` | `RotateSlide` |
+| `HaloTabs` | `ShowTab` |
+
+Some older namespaces differ — `ConcentriqMagnification` is singular, `ConcentriqMarkupButtons`
+instead of `SlideMarkup`. Do not copy those; use the Halo names for anything new.
+
+**`_CaseNumber` is a special case for a different reason.** Its parameters are optional and
+repeating — the trigger is `<CaseType> [<Year> | ] [<Digit>|1-5]`, where `Year` may not be spoken
+and `Digit` repeats one to five times — so it cannot index at all. It loops `args.Names` and tests
+each against the list name:
 
 ```csharp
 if      (args.Names[index] == caseTypeList) caseType = args.Translate(caseTypeList, args.Values[index]);
@@ -135,8 +145,7 @@ else if (args.Names[index] == "Digit")      shortNumBuilder.Append(args.Translat
 That is why `_CaseNumber` — and only `_CaseNumber` — keeps a `CaseTypeList` property: it needs the
 name to do the matching, and as an `ISpeechFormatter` it has no trigger to read a position from.
 
-So: `Names[0]` for one parameter, `Names[0..n]` for several in a fixed order, name-matching only
-when parameters are optional or repeating.
+So: `Names[0]` when there is one spoken parameter, explicit list names when there are several.
 
 Named lists are per-system. The house names are `<System>CaseType`, `<System>Magnification`,
 `<System>MarkupButtons`, `<System>Rotation`. `Digit`, `Year` and `NextPrevious` are shared.
