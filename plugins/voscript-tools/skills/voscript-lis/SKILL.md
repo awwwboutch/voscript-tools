@@ -1,6 +1,6 @@
 ---
 name: voscript-lis
-description: Scaffold the base VoiceOver PRO starter script set for a new LIS or AP system integration where reporting is the main surface - Epic Beaker, PowerPath, CoPath, PathFlow, Orchard, NovoPath. Use when starting a new LIS integration, or when writing any individual reporting command script - DictateSection, ReturnTo the LIS, NextCase, SignoutReport, CaseComplete, AddDeleteBlocks, OrderStains, InsertChecklist. Covers the Report Builder handoff, section-to-field mapping, sign-out workflow, and desktop as well as browser automation. For a slide viewer or image management system - Halo, AISight, Concentriq - use voscript-ims instead.
+description: STUB - not yet exercised on a real integration; the script catalog in it is a placeholder. Scaffold the base VoiceOver PRO starter script set for a new LIS or AP system integration where reporting is the main surface - Epic Beaker, PowerPath, CoPath, PathFlow, Orchard, NovoPath. Use when starting a new LIS integration, or when writing any individual reporting command script - DictateSection, ReturnTo the LIS, NextCase, SignoutReport, CaseComplete, AddDeleteBlocks, OrderStains, InsertChecklist. Covers the Report Builder handoff, section-to-field mapping, sign-out workflow, and desktop as well as browser automation. For a slide viewer or image management system - Halo, AISight, Concentriq - use voscript-ims instead.
 ---
 
 # VOScript Starter Scaffold — LIS / Reporting
@@ -64,6 +64,11 @@ reference material is shared:
   `BrowserManager`, the addressing idioms, and the gotchas.
 - `${CLAUDE_PLUGIN_ROOT}/shared/references/script-catalog.md` — per-script intent and variants.
   IMS-focused today; LIS entries belong here too.
+- `${CLAUDE_PLUGIN_ROOT}/shared/examples/` — fifteen real published scripts, always present
+  regardless of what the local machine has cached. `AISight.DictateSection.cs` and
+  `AISight.ReturnToAISight.cs` are the two that matter most here: they are the Report Builder
+  handoff and the return path, which are the spine of any LIS integration. Read those before
+  writing either.
 
 ## Rules that are not optional
 

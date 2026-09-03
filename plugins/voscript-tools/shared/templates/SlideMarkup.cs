@@ -13,7 +13,7 @@ using VoiceOver.InternalScripts;
 namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
-    [ExtensionCommandClass(HelpText = "Presses a markup button in the viewer so the user can draw an annotation. Standard trigger: <{{System}}MarkupButtons>")]
+    [ExtensionCommandClass(HelpText = "Presses a markup button in the viewer so the user can draw an annotation. Trigger: the {{System}}MarkupButtons named list")]
     [ExtensionStringProperty("MarkupList", DefaultValue = "{{System}}MarkupButtons", HelpText = "Name of the annotation tool named list.")]
     [ExtensionStringProperty("LayerList", DefaultValue = "{{System}}MarkupLayers", HelpText = "Name of the annotation layer named list. Leave blank if the system has no layers.")]
 #endregion PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION

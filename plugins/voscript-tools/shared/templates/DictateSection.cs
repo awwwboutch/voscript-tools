@@ -15,7 +15,7 @@ using WindowsInput.Native;          // For InputSimulator
 namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
-    [ExtensionCommandClass(HelpText = "Reads the case number off the open case and initializes Report Builder for it. Standard trigger: dictate <$Sections>")]
+    [ExtensionCommandClass(HelpText = "Reads the case number off the open case and initializes Report Builder for it. Trigger: the word dictate followed by the shared Sections named list")]
     [ExtensionStringProperty("AccessionLabel", DefaultValue = "Accession", HelpText = "On-screen label sitting next to the accession number.")]
     [ExtensionStringProperty("ReportTabName", DefaultValue = "", HelpText = "Report tab to focus in Classic. Leave blank if the report is not behind a tab.")]
     [ExtensionStringProperty("ReportPanelName", DefaultValue = "Report Details*", HelpText = "Group that contains the report's section edit controls.")]

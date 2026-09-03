@@ -15,7 +15,7 @@ using WindowsInput.Native;          // For InputSimulator
 namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
-    [ExtensionCommandClass(HelpText = "Opens the spoken case from the {{Vendor}} worklist. Standard trigger: <{{CaseTypeList}}> [<Year> | ] [<Digit>|1-5]")]
+    [ExtensionCommandClass(HelpText = "Opens the spoken case from the {{Vendor}} worklist. Trigger: the {{CaseTypeList}} named list, an optional spoken year, then up to five digits")]
     [ExtensionIntProperty("CounterLength", DefaultValue = 5, HelpText = "Length (in characters) of the case number counter part.")]
     [ExtensionStringProperty("CaseTypeList", DefaultValue = "{{CaseTypeList}}", HelpText = "Name of the case type named list.")]
     [ExtensionBoolProperty("LeadingZeros", DefaultValue = true, HelpText = "Determines if the case number is constructed with or without leading zeros.")]

@@ -16,7 +16,7 @@ using WindowsInput.Native;          // For InputSimulator
 namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
-    [ExtensionCommandClass(HelpText = "Rotates the slide to the spoken number of degrees. Standard trigger: rotate [<Digit>|1-3]")]
+    [ExtensionCommandClass(HelpText = "Rotates the slide to the spoken number of degrees. Trigger: the word rotate followed by up to three spoken digits")]
     [ExtensionStringProperty("RotateToggleName", DefaultValue = "Toggle rotator", HelpText = "Control that opens the rotation gadget.")]
     [ExtensionBoolProperty("CloseAfterRotate", DefaultValue = true, HelpText = "Close the rotation gadget when finished.")]
 #endregion PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION

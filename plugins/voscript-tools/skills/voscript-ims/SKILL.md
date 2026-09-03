@@ -115,8 +115,20 @@ Add when the system has **AI resulting**:
 
 ## Where the real examples live
 
-Every published script for every shipped integration is on disk in the PRO client's local cache,
-at `{ProgramData}\{ClientEnvironment}\{tenant}\VO_LocalCache\R_ScriptSource`.
+**Start with the examples bundled in this plugin** — `${CLAUDE_PLUGIN_ROOT}/shared/examples/`,
+whose `README.md` maps each file to the shape it demonstrates. Fifteen real published scripts
+covering every addressing idiom, the Report Builder handoff and the return path. They are always
+present, so nothing depends on what a given machine has cached.
+
+That matters because **not every tenant carries every integration.** A QA or customer tenant may
+hold almost none of them, and a pinned revision number rots — the library revision differs per
+tenant and moves.
+
+The local cache is the *newer* source when it happens to hold what you need, so prefer it for an
+integration it actually has. Everything below is about reading it safely.
+
+Every published script for a given tenant is at
+`{ProgramData}\{ClientEnvironment}\{tenant}\VO_LocalCache\R_ScriptSource`.
 
 **Resolve it from the registry, not by guessing or scanning.** `HKLM:\SOFTWARE\Voicebrook\PRO_Client`
 holds the environment the client is currently pointed at:
@@ -154,7 +166,7 @@ are work in progress. The source is the XML-escaped `ScriptCode` attribute:
 Consult it before writing anything non-obvious. `Halo`, `AISight`, `Fusion`, `BXLink`,
 `Concentriq`, `Corista`, `PathFlow`, `PathPresenter` and `VBPathView` each carry a full or partial
 base set, and comparing two or three of them shows which parts of a pattern are universal and
-which are that vendor's quirk. `VOScript.Starter._Browser@13P` is the current helper library.
+which are that vendor's quirk. The helper library is `VOScript.Starter._Browser` - read the highest `P` revision in whichever tenant you are looking at. Do not rely on a pinned revision number; it differs per tenant and moves.
 
 What the cache is good for is **patterns** — how a return-to-IMS is structured, which addressing
 shapes exist, what the house style looks like. It cannot tell you this vendor's control types or
