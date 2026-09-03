@@ -67,8 +67,14 @@ Add when the system has **AI resulting**:
    create in PRO. Create those before generating anything, and note that `BrowserManager` declares
    `IDisposable` rather than `ExtensionScript`.
 
-   An `OLDER` result is a warning, not a pass: the templates call helpers such as
-   `IsVisiblyRendered` and `WaitForElement` that were added to `_Browser` over time.
+   **Revision numbers are not compared, and must not be.** PRO configuration is not centralized —
+   a tenant is a starter export plus deltas from whichever resource's configuration — so `@1P` in
+   one tenant is not the same code as `@1P` in another, and higher is not newer. The check
+   compares declared members against what the templates actually call.
+
+   `DIFFERS-OK` means the tenant's code differs but provides everything needed: **leave it alone**,
+   since overwriting it could break scripts already in that tenant. Only `MISSING` and
+   `INCOMPATIBLE` need action, and `INCOMPATIBLE` lists exactly which members are absent.
 
 3. **Generate.** Run the scaffolder:
 

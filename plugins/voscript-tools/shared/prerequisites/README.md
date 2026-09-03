@@ -42,12 +42,32 @@ Core is always required. Reporting is required only with `-Reporting`, AI only w
 requires the exact base-class declaration rather than a category, so take it from the table above
 or from each file's header comment.
 
-## Staleness is not always benign
+## Revision numbers do not compare across tenants
 
-`OLDER` means the tenant has the library at a lower revision than this bundle. It may be fine, but
-the templates were written against the bundled revision and call helpers that may not exist in an
-older one — `IsVisiblyRendered`, `WaitForElement`, `Invoke` and `FindByPath` were all added over
-time. Check the helpers your scripts actually call before assuming an older copy will do.
+PRO configuration is not centralized. A tenant is assembled from a starter export plus deltas
+taken from whichever Voicebrook resource's configuration, so **`@1P` in one tenant is not the same
+code as `@1P` in another**, and a higher number does not mean newer. `pro\sentara` carries
+`_Premium@3P-15292-3` while `demo\sales` carries `@1P-2154-3` — unrelated lineages, not two points
+on one history.
+
+So the check ignores revision numbers and compares the code. It derives the set of members the
+templates actually call — `FindElementOnPage`, `WaitForElement`, `IsVisiblyRendered`, `GetParent`
+and the rest — by scanning `../templates/` at run time, then checks each is declared in the
+tenant's copy. Four outcomes:
+
+| Status | Meaning | Do |
+|---|---|---|
+| `IDENTICAL` | Same code as the bundled copy. | Nothing. |
+| `DIFFERS-OK` | Different code, but every called member is present. | **Nothing.** Leave the tenant's copy alone — overwriting it could break scripts already there. |
+| `INCOMPATIBLE` | Present, but missing members the templates call. The absent ones are listed. | Create the bundled copy, or rewrite the generated scripts to avoid those members. |
+| `MISSING` | No published revision at all. | Create the bundled copy. |
+
+`DIFFERS-OK` is the common case in a customer tenant and is not a problem to fix. Divergence only
+matters when it removes something the scripts need.
+
+Because ordering is meaningless, the check examines *every* published revision in the tenant and
+keeps whichever satisfies the most of what the templates call, rather than assuming the
+highest-numbered one is best.
 
 Do not edit these files. The source of truth is whatever is published in PRO; this is a snapshot
 for seeding a tenant that lacks one.
