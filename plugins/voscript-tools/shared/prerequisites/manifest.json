@@ -1,0 +1,44 @@
+[
+  {
+    "Key": "VOScript.Starter._Browser",
+    "Type": "ExtensionScript",
+    "Revision": "13P-3518-5",
+    "Tier": "core"
+  },
+  {
+    "Key": "VOScript.Starter.Browser.Manager.BrowserManager",
+    "Type": "IDisposable",
+    "Revision": "3P-2646-1",
+    "Tier": "core"
+  },
+  {
+    "Key": "VOScript.Starter._Premium",
+    "Type": "ExtensionScript",
+    "Revision": "1P-2154-3",
+    "Tier": "reporting"
+  },
+  {
+    "Key": "VOScript.Starter.CapResultParser._IAiResultSource",
+    "Type": "ExtensionScript",
+    "Revision": "1P-3235-2",
+    "Tier": "ai"
+  },
+  {
+    "Key": "VOScript.Starter.CapResultParser._CapTypes",
+    "Type": "ExtensionScript",
+    "Revision": "2P-3250-3",
+    "Tier": "ai"
+  },
+  {
+    "Key": "VOScript.Starter.CapResultParser._TemplateDetector",
+    "Type": "ExtensionScript",
+    "Revision": "3P-3471-6",
+    "Tier": "ai"
+  },
+  {
+    "Key": "VOScript.Starter.CapResultParser._CapEngine",
+    "Type": "ExtensionScript",
+    "Revision": "4P-3523-6",
+    "Tier": "ai"
+  }
+]

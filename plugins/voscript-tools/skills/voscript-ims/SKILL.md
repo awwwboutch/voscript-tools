@@ -53,7 +53,24 @@ Add when the system has **AI resulting**:
    - Whether the system has reporting tools, and whether it has AI resulting.
    - Output directory (default: the current project folder).
 
-2. **Generate.** Run the scaffolder:
+2. **Check the tenant's prerequisites first.** Generated scripts call `_Browser` and
+   `Browser.Manager.BrowserManager`; nothing compiles without them, and **not every tenant has
+   them.** A fresh QA or customer tenant often has neither.
+
+   ```bash
+   pwsh -File "${CLAUDE_PLUGIN_ROOT}/shared/scripts/Test-Prerequisites.ps1" -OutDir ./prereqs
+   ```
+
+   Add `-IncludeReporting` when using `-Reporting` (pulls in `_Premium`) and `-IncludeAi` when
+   using `-AiResulting` (the `CapResultParser` libraries). `-OutDir` stages the source of anything
+   missing, from the bundled copies in `${CLAUDE_PLUGIN_ROOT}/shared/prerequisites/`, ready to
+   create in PRO. Create those before generating anything, and note that `BrowserManager` declares
+   `IDisposable` rather than `ExtensionScript`.
+
+   An `OLDER` result is a warning, not a pass: the templates call helpers such as
+   `IsVisiblyRendered` and `WaitForElement` that were added to `_Browser` over time.
+
+3. **Generate.** Run the scaffolder:
 
    ```bash
    pwsh -File "${CLAUDE_PLUGIN_ROOT}/shared/scripts/New-StarterScripts.ps1" -System Halo -Vendor "Indica Labs Halo AP" -WindowTitle "Halo AP" -ReturnToName ReturnToHaloAP -Author "you@voicebrook.com" -OutDir . -Reporting -AiResulting
@@ -77,7 +94,7 @@ Add when the system has **AI resulting**:
    Files land as `VOScript.Starter.{System}.{ScriptName}.cs`, flat, matching the naming
    convention already used in these project folders.
 
-3. **Dump the UIA tree before resolving anything.** Run `_Browser.DumpTree` once on every surface
+4. **Dump the UIA tree before resolving anything.** Run `_Browser.DumpTree` once on every surface
    the scripts touch — worklist, case detail, viewer, and each menu or panel that has to be open
    — and keep the output to hand. This is mandatory, not advisory. Claude in Chrome is for
    reconnaissance only: it finds candidate names fast, but it reports the DOM, and three things
@@ -93,15 +110,15 @@ Add when the system has **AI resulting**:
    `IsVisiblyRendered` vs a null check is the one most often missed. Do not expect another
    integration against the same vendor to check your work; there usually isn't one.
 
-4. **Read `${CLAUDE_PLUGIN_ROOT}/shared/references/script-catalog.md`** for each script's known-good variants, and fill in the
+5. **Read `${CLAUDE_PLUGIN_ROOT}/shared/references/script-catalog.md`** for each script's known-good variants, and fill in the
    `TODO:` markers. Each generated script compiles as written, but every element name, keystroke
    and anchor in it is a placeholder.
 
-5. **Deliver the script text inline in the response**, not just a file link. These get pasted
+6. **Deliver the script text inline in the response**, not just a file link. These get pasted
    into VO_ScriptEdit by hand; a path alone is not usable. Print each script in a fenced
    `csharp` block, one per script.
 
-6. **Named lists.** The scaffolder also writes `{System}NamedLists.txt` — a copy/paste
+7. **Named lists.** The scaffolder also writes `{System}NamedLists.txt` — a copy/paste
    worksheet of every list the generated commands reference, in `Text\Spoken form` format, with
    the magnifications pre-filled and everything else marked `TODO`. Fill it in from the live
    application alongside the scripts, delete the lists the system doesn't support, and hand it
@@ -109,7 +126,7 @@ Add when the system has **AI resulting**:
    no punctuation, numbers as words, acronyms spaced and capitalised, pipe-separated
    alternatives.
 
-7. **Command palette.** Each `CommandScript` needs a palette entry with its trigger and
+8. **Command palette.** Each `CommandScript` needs a palette entry with its trigger and
    properties. See `${CLAUDE_PLUGIN_ROOT}/shared/references/conventions.md` for the palette XML shape and the standard
    triggers for each command.
 
