@@ -33,11 +33,17 @@ namespace {{Namespace}}
             string markupType = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
 
             // ONLY if {{Vendor}} has annotation layers, so the command takes two spoken
-            // parameters. Names[0] cannot tell them apart, so a multi-list command is the one case
-            // that names its lists explicitly - and both must then be named, not just the second:
+            // parameters. Index them by their position in the trigger phrase rather than naming
+            // the lists, so the script stays independent of what the lists are called:
             //
-            //   string markupType = SpeechParams.TranslateSingle("{{System}}MarkupButtons");
-            //   string layer      = SpeechParams.TranslateSingle("{{System}}MarkupLayers");
+            //   // Trigger: <{{System}}MarkupLayers> <{{System}}MarkupButtons>
+            //   string layer      = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
+            //   string markupType = SpeechParams.TranslateSingle(SpeechParams.Names[1]);
+            //
+            // TODO if you enable this: state the trigger's parameter order in a comment above the
+            // indexes, as shown. The indexes are only correct for that order, and reordering the
+            // trigger in the palette silently swaps them - the command then sets a layer named
+            // "Rectangle" rather than failing.
             //
             // Delete the layer block below along with this comment if there are no layers.
             string layer = "";
