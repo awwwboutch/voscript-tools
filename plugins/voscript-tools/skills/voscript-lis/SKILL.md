@@ -1,6 +1,6 @@
 ---
 name: voscript-lis
-description: STUB - not yet exercised on a real integration; the script catalog in it is a placeholder. Scaffold the base VoiceOver PRO starter script set for a new LIS or AP system integration where reporting is the main surface - Epic Beaker, PowerPath, CoPath, PathFlow, Orchard, NovoPath. Use when starting a new LIS integration, or when writing any individual reporting command script - DictateSection, ReturnTo the LIS, NextCase, SignoutReport, CaseComplete, AddDeleteBlocks, OrderStains, InsertChecklist. Covers the Report Builder handoff, section-to-field mapping, sign-out workflow, and desktop as well as browser automation. For a slide viewer or image management system - Halo, AISight, Concentriq - use voscript-ims instead.
+description: STUB - not yet exercised on a real integration; the script catalog in it is a placeholder, though the namespace layout is verified. Scaffold the base VoiceOver PRO starter script set for a new LIS or AP system integration where reporting is the main surface - Epic Beaker, PowerPath, CoPath, Cerner Millennium, Meditech. Use when starting a new LIS integration, or when writing any individual reporting command script - DictateSection, ReturnTo the LIS, NextCase, SignoutReport, CaseComplete, AddDeleteBlocks, OrderStains, InsertChecklist, ScanContainer, OpenTranscription. Covers the Report Builder handoff, section-to-field mapping, sign-out workflow, the Core/Ancillary sub-namespace layout the large LIS integrations use, and desktop as well as browser automation. For a slide viewer or image management system - Halo, AISight, Proscia Concentriq, Techcyte Fusion, Lumea BXLink, PathPresenter, Corista, Fuji, Gestalt PathFlow - use voscript-ims instead.
 ---
 
 # VOScript Starter Scaffold — LIS / Reporting
@@ -27,12 +27,47 @@ core, not optional.
 | `CaseNumber` | CommandScript | Opens the spoken case. |
 | `DictateSection` | CommandScript | Initializes Report Builder for the open case. |
 | `ReturnTo{System}` | CommandScript | Writes Report Builder text back into the LIS report fields. |
-| `NextCase` | CommandScript | Advances to the next case in the worklist. |
+| `NextCase` | CommandScript | Closes out the current case and resets the LIS to a blank state, ready for `CaseNumber` to search for the next one. |
 | `SignoutReport` | CommandScript | Signs the case out. |
+
+`NextCase` is an **LIS-only** command and that is its definition — the shipped CoPath and PowerPath
+help text puts it exactly: *"Save the case, then either Close or Clear the case from Case
+Information Window."* It is not viewer navigation. The IMS equivalents are `NavigateCases` and
+`ReturnToWorklist`, and several IMS namespaces misuse the `NextCase` name for those; see
+`script-catalog.md` before copying anything called `NextCase` out of an IMS namespace.
 
 Common additions, per system — confirm which exist before scaffolding any of them:
 `CaseComplete`, `AmendReport`, `AddDeleteBlocks`, `OrderStains`, `InsertChecklist`,
 `SwitchActivity`, `OpenTranscription`, `ScanBlock` / `ScanContainer`.
+
+## Namespace layout: the functional tier
+
+Unlike an IMS, which stays flat, the large LIS integrations group their scripts one level deeper.
+Epic and PowerPath both do, and new LIS work should follow it:
+
+```
+VOScript.Starter.Epic.Core.CaseNumber
+VOScript.Starter.Epic.Core.DictateSection
+VOScript.Starter.Epic.Core.ReturnToEpic
+VOScript.Starter.Epic.Ancillary.AddDeleteBlocks
+VOScript.Starter.Epic.Recorder.StartRecorder
+VOScript.Starter.Epic.Scanning.ScanContainer
+VOScript.Starter.Epic.Transcription.OpenTranscription
+```
+
+| Tier | Holds |
+|---|---|
+| `.Core` | The reporting spine — case open, dictate, return, sign out, complete |
+| `.Ancillary` | Everything around the report — blocks, stains, flags, notes, orders, status, printing, activity switching |
+| `.Recorder` | Recorder entry points |
+| `.Scanning` | Barcode / container scanning (**PowerPath spells this `.Scanner`** — match whichever the namespace already uses) |
+| `.Transcription` | Transcription worklist open/close |
+
+The class name still equals the last dotted segment, and the `namespace` declaration must include
+the tier: `namespace VOScript.Starter.Epic.Core`.
+
+A small LIS does not need the tier — keep it flat and split later. The split is worth making past
+roughly 15 scripts, which is where Epic (36) and PowerPath (26) both sit.
 
 ## Before this skill is usable
 

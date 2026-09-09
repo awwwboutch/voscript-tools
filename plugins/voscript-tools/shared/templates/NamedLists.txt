@@ -16,11 +16,18 @@ A translation holds ONLY the part of the phrase that varies. The invariant words
 command trigger, so "zoom <{{System}}Magnifications>" means the list holds 20x, never Zoom to 20x.
 If the on-screen caption needs more than the spoken value, compose it in the script.
 
+THE LIST NAME AND THE PALETTE TRIGGER MUST MATCH. That is the only hard requirement - nothing else
+reads the name. The names below follow the Halo convention and are what a NEW integration should
+use. If one will not fit the Named List Manager's character limit, shorten the SUFFIX
+(Magnifications -> MagLevels, SlideMarkup -> Markup, Rotation -> Rotate) and change the trigger to
+match. Do not assume these names apply to a system that already exists - read its real list names
+off its command palette instead.
+
 
 --------------------------------------------------------------------------------
 {{System}}CaseType
   Used by  _CaseNumber / CaseNumber / DictateSection (property CaseTypeList)
-  Trigger  <{{System}}CaseType> [<Year> | ] [<Digit>|1-5]
+  Trigger  <{{System}}CaseType> [<Year> dash|] [<Digit>|1-5]
   Text is the case-type prefix built into the accession number. This list also needs its
   Target column set to the Report Builder template for that case type.
 --------------------------------------------------------------------------------
@@ -52,9 +59,23 @@ Reset\reset
 
 
 --------------------------------------------------------------------------------
+{{System}}Rotation
+  Used by  RotateSlide
+  Trigger  rotate to <{{System}}Rotation>
+  Text is the degree value the script sends, or computes toward where the viewer only offers
+  incremental hotkeys. Keep it numeric - RotateSlide parses it.
+  DELETE THIS LIST if the viewer offers no rotation control at all.
+--------------------------------------------------------------------------------
+0\zero
+90\ninety
+180\one eighty|one hundred eighty
+270\two seventy|two hundred seventy
+
+
+--------------------------------------------------------------------------------
 {{System}}SlideMarkup
   Used by  SlideMarkup
-  Trigger  <{{System}}SlideMarkup>
+  Trigger  add <{{System}}SlideMarkup>
   Text must match the annotation control's on-screen name exactly - SlideMarkup finds the
   control by that name. Read the real captions off the toolbar before filling these in.
 --------------------------------------------------------------------------------
@@ -81,7 +102,7 @@ TODO Malignant\malignant
 --------------------------------------------------------------------------------
 {{System}}Tabs
   Used by  ShowTab
-  Trigger  show <${{System}}Tabs>
+  Trigger  show <{{System}}Tabs>
   Text is usually the tab's on-screen name. Where the tray icons carry no accessible name,
   Text is a sibling offset from a fixed anchor instead and these values are integers.
   DELETE THIS LIST if the viewer has no tabbed panels worth a voice command.

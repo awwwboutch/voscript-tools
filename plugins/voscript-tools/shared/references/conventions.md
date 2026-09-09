@@ -14,6 +14,32 @@ VOScript.Starter.Halo.Labels._HaloBreastBmk169Labels.cs
 The class name must equal the last dotted segment before `.cs`. An underscore prefix marks a
 library (`ExtensionScript`) rather than a voice command (`CommandScript`).
 
+### `VOScript.Starter` vs `VOScript.Standard`
+
+A PRO instance carries both. **`VOScript.Standard` is the old starter code**, still live for
+existing customers. **`VOScript.Starter` is the current line**, restructured so new work does not
+disturb shipped configs. All new work goes in `VOScript.Starter`; treat `VOScript.Standard` as
+read-only unless told otherwise.
+
+A few systems exist in both — `PathFlow`, `PowerPath`, `DefaultCaseNumber` — so confirm which line
+is meant before editing anything whose name appears twice.
+
+`VOScript.Standard.SpeechBox.*` and `VOScript.ReportBuilder.*` are product-side scripts that
+palettes reference directly for editor commands. They are not part of a system integration and are
+not an editable surface.
+
+### Sub-namespaces
+
+Shared libraries sit directly under `VOScript.Starter`, not inside a system:
+`VOScript.Starter._Common`, `._Browser`, `._Desktop`, `._Premium`, `._Scanning`, and
+`VOScript.Starter.Browser.Manager.BrowserManager`. AI resulting overlays live one level down, in
+`VOScript.Starter.<System>.Labels`.
+
+Beyond that, **an IMS namespace stays flat** — `VOScript.Starter.Halo.ShowTab`. Large LIS
+integrations do not: Epic and PowerPath group into a functional tier (`.Core`, `.Ancillary`,
+`.Recorder`, `.Scanning` / `.Scanner`, `.Transcription`), giving keys like
+`VOScript.Starter.PowerPath.Core.SignoutReport`. See the `voscript-lis` skill.
+
 Exported PRO configs arrive as `R_ScriptSource/<ExportKey>.xml` with the source in the
 `ScriptCode` attribute, XML-escaped, and declared properties mirrored in `<ScriptProperties>`.
 Revision suffixes on hand-saved copies (`.rev5P.txt`) mean revision 5, Published; `A` is Active.
@@ -74,12 +100,35 @@ Use `[ExtensionExtensionClass(...)]` on an `ExtensionScript`, `[ExtensionCommand
 declared `LeadingZeros` silently returns the default forever — this bug shipped in more than one
 namespace before it was caught.
 
+### A declared property an `ISpeechFormatter` never reads is inert
+
+`_CaseNumber` legitimately keeps a `CaseTypeList` property, for the reason given under named lists
+below. But an `ISpeechFormatter` is entered through
+`FormatParameterizedSpeech(SpeechParameters args)` — there is no trigger and no palette position to
+read from — so it is easy to declare a property and then quietly hardcode the value instead. The
+shipped `Halo._CaseNumber` does exactly that:
+
+```csharp
+public string FormatParameterizedSpeech(SpeechParameters args)
+{
+    int counterLength = 6;                  // the attribute declares DefaultValue = 5
+    string caseTypeList = "HaloCaseType";   // the attribute declares "CaseType"
+    bool leadingZeros = true;               // declared, accepted by the overload, never used
+    return FormatParameterizedSpeech(args, counterLength, caseTypeList, leadingZeros);
+}
+```
+
+Nothing breaks, but the palette shows three values the script does not use. If a value genuinely
+needs to be site-configurable, the calling `CommandScript` has to read it and pass it into the
+static overload. Otherwise keep the declared default and the hardcoded value in agreement, or drop
+the attribute.
+
 ## Speech parameters and named lists
 
 ```csharp
 string direction   = SpeechParams.TranslateSingle("NextPrevious");
 string firstParam  = SpeechParams.TranslateSingle(SpeechParams.Names[0]);
-string tool        = SpeechParams.TranslateToParams("HaloAnnotationTools").Translation;
+string tool        = SpeechParams.TranslateToParams("HaloSlideMarkup").Translation;
 string template    = SpeechParams.TranslateToParams("HaloCaseType").Target;
 TranslationParams p = Application.FindTranslationParams("HaloCaseType", "SP");
 ```
@@ -147,8 +196,48 @@ name to do the matching, and as an `ISpeechFormatter` it has no trigger to read 
 
 So: `Names[0]` when there is one spoken parameter, explicit list names when there are several.
 
-Named lists are per-system. The house names are `<System>CaseType`, `<System>Magnification`,
-`<System>MarkupButtons`, `<System>Rotation`. `Digit`, `Year` and `NextPrevious` are shared.
+Named lists are per-system. `Digit`, `Year` and `NextPrevious` are shared.
+
+### The only hard requirement is that the trigger and the list agree
+
+Use the Halo names above for anything new. But understand what actually enforces them: **nothing**
+except the palette. The list name in the trigger has to match the name of the list, and no other
+part of PRO reads it. That is why the older namespaces drifted, and why the drift is harmless
+where it sits.
+
+**The Named List Manager caps the name length,** which is the honest reason some suffixes are
+shorter rather than anyone being careless. `PathPresenterMagnifications` is 27 characters and
+became `PathPresenterMagLevels` at 22. When a Halo name will not fit, shorten the *suffix* -
+`Magnifications` → `MagLevels`, `SlideMarkup` → `Markup`, `Rotation` → `Rotate` - and change the
+trigger to match. Record which you used in the command's help text.
+
+**Never assume the convention for a system that already exists.** Read its real list name off its
+command palette entry, or out of `GlobalSetup`. The shipped spread, beyond the Concentriq cases
+noted above:
+
+| Concept | Names in use |
+|---|---|
+| Magnification | `…Magnifications` (AISight, BXLink, Fusion, Halo, MacroPath, VBPathView), `…Magnification` (Concentriq, Corista), `…MagLevels` (PathFlow, PathPresenter) |
+| Markup | `…MarkupButtons` (6 systems), `HaloSlideMarkup`, `PathPresenterMarkup`, `VBPathViewMarkup` |
+| Rotation | `…Rotation` (Concentriq, Halo), `…Rotate` (AISight, PathPresenter, VBPathView) |
+| Tabs | `…Tabs` (Fusion, Halo, PowerPath), `BXLinkTab`, `PathFlowSideMenu`, `AISightPanels` |
+
+Only `<System>CaseType` holds everywhere.
+
+### `.Target` needs an Extended list
+
+`TranslateToParams(...).Target` returns a value only on a list whose type is `Extended` or `Full`.
+`HaloCaseType`, `AISightCaseType`, `CoristaCaseType`, `EpicCaseType`, `PathFlowCaseType`,
+`MockEpicCaseType` and `VBPathViewCaseType` are Extended and carry the Report Builder template in
+the second column. `ConcentriqCaseType`, `FusionCaseType`, `BXLinkCaseType`, `MacroPathCaseType`
+and `PathPresenterCaseType` are **Simple** — no second column, so a `.Target` lookup against those
+returns nothing and the template has to come from elsewhere.
+
+### Translations are compared case-sensitively
+
+The shipped `Fusion.NextCase` branches on `direction == "NEXT"` — upper case — against the shared
+`NextPrevious` list. Read the list's actual Text values before writing the comparison rather than
+assuming `"Next"`, and prefer a case-insensitive compare in anything new.
 
 ### A translation holds ONLY the part of the phrase that varies
 
@@ -164,7 +253,7 @@ and the list's translations are `0.1x`, `20x`, `40x`, `In`, `Out`, `Reset` — *
 is composed in the script:
 
 ```csharp
-string spoken = SpeechParams.TranslateSingle(Property("MagnificationList", "ProsciaMagnification"));
+string spoken = SpeechParams.TranslateSingle(Property("MagnificationList", "ConcentriqMagnification"));
 
 switch (spoken)
 {
@@ -190,12 +279,23 @@ Cross-script scratch space on the application:
 ```csharp
 Application.SetStateProperty("CaseNumber", caseNumber);
 string edition = StateProperty("Edition", "");     // "Premium" | "Classic"
-string openRB  = StateProperty("OpenRB", "False"); // palette-controlled
-string role    = StateProperty("RoleCategory", "");// e.g. "SIGNOUT"
+string openRB  = StateProperty("OpenRB", "No");    // "Yes" | "No"
+string role    = StateProperty("RoleCategory", "");// "GROSS" | "RESIDENT" | "SIGNOUT"
 ```
 
-`CaseNumber` is the contract between `CaseNumber` / `DictateSection` and everything downstream.
-Set it before anything slow happens, so a later script never reads a stale value.
+`Edition`, `OpenRB` and `RoleCategory` are **defined** properties with fixed choice lists. Match
+them exactly:
+
+- `Edition` — `Classic` | `Premium`
+- `OpenRB` — `Yes` | `No`, set per User and per Role. **Not** `True`/`False`; a default of
+  `"False"` never equals a real value, so the comparison takes the wrong branch forever.
+- `RoleCategory` — `GROSS` | `RESIDENT` | `SIGNOUT`
+
+`CaseNumber` is **not** a defined property. It is created at runtime by whichever script calls
+`SetStateProperty` first, which is why it does not appear in the definitions. That works, but
+nothing validates the key — a typo reads back empty rather than failing. It is the contract
+between `CaseNumber` / `DictateSection` and everything downstream, so set it before anything slow
+happens and spell it exactly.
 
 ## Command palette entries
 
@@ -222,20 +322,41 @@ A script does nothing until a palette item points at it. Exported shape:
 `ApplicationKey` decides where the command is live: `Custom` (the IMS window), `Always On`,
 `SpeechBox Editor` (Report Builder, Premium), `Text Editor` (Classic).
 
-Standard triggers:
+Standard triggers. These are the live forms read off the `Indica Halo` palette — the most complete
+shipped IMS set — with the list name generalised. Check the target system's own palette before
+reusing one.
 
 | Command | Application | Trigger |
 |---|---|---|
-| `CaseNumber` | Custom | `<SystemCaseType> [<Year> \| ] [<Digit>\|1-5]` |
+| `CaseNumber` | Custom | `<SystemCaseType> [<Year> dash\|] [<Digit>\|1-5]` |
 | `NavigateCases` | Custom | `<NextPrevious> case` |
 | `NavigateSlides` | Custom | `<NextPrevious> slide` |
-| `RotateSlide` | Custom | `rotate [<Digit>\|1-3]` |
-| `SetMagnificationLevel` | Custom | `zoom <SystemMagnification>` |
-| `ShowTab` | Custom | `show <$SystemTabs>` |
-| `SlideMarkup` | Custom | `<SystemMarkupButtons>` |
+| `RotateSlide` | Custom | `rotate to <SystemRotation>` |
+| `SetMagnificationLevel` | Custom | `zoom <SystemMagnifications>` |
+| `ShowTab` | Custom | `show <SystemTabs>` |
+| `SlideMarkup` | Custom | `add <SystemSlideMarkup>` |
 | `DictateSection` | Custom | `dictate <$Sections>` |
-| `ReturnTo<System>` | SpeechBox Editor, Text Editor | `[send report\|return to <System>]` |
-| `PullBiomarkerResults` | SpeechBox Editor | `pull biomarker results` |
+| `ReturnTo<System>` | SpeechBox Editor | `send report` |
+| `PullBiomarkerResults` | SpeechBox Editor | `get results` |
+
+Four of these are easy to get wrong:
+
+- **`<Year> dash`, not `<Year> |`.** The year is only accepted when the pathologist also says
+  "dash", and `_CaseNumber` relies on that to know a year was spoken at all.
+- **`show <SystemTabs>` takes no `$`.** The `$` prefix marks a *dynamic* list computed from the
+  active document — `<$Sections>`, `<$ListItems>`, `<$PlainText>`. Tab lists are ordinary static
+  named lists, so a `$` on one makes the trigger resolve to nothing.
+- **`RotateSlide` and `SlideMarkup` carry a verb** (`rotate to`, `add`). A bare
+  `<SystemSlideMarkup>` with no invariant word is not the shipped shape.
+- **`send report` is the phrase on every LIS and IMS.** Deliberately identical everywhere, so a
+  pathologist working across two systems says the same thing — do not add a
+  `return to <System>` alternative. This is about the *phrase* only; the script keeps its
+  long-standing `ReturnTo<System>` name, named for the product where that differs from the
+  namespace (`ReturnToHaloAP`).
+
+`PullBiomarkerResults` is the class name; its palette item is commonly keyed `GetResults` with the
+trigger `get results`. Palette key, trigger and class name are three separate things and none has
+to match the others.
 
 ## Report Builder handoff
 
@@ -276,6 +397,14 @@ else if (roleCategory == "SIGNOUT")            SpeechBox.ActiveDocument.MarkNewS
 if (DocumentStore.SaveAndRelease(SpeechBox.ActiveDocument)) SpeechBox.Close();
 Application.SetCommandDocument("Doc-<System>-Surgical");
 ```
+
+## Not available in PRO
+
+- **`System.Speech` / `SpeechSynthesizer`.** PRO does not reference it, so a script cannot speak
+  text back to the pathologist. This was tried and abandoned — do not reach for it again. To
+  surface information to the user, write to `StatusLog` (the toolbar shows entries up to the level
+  set by the `ToolbarMessageLevel` state property), or set a state property and let the template
+  render it.
 
 ## Error handling
 

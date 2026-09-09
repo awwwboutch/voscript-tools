@@ -13,7 +13,7 @@ using VoiceOver.InternalScripts;
 namespace {{Namespace}}
 {
 #region PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
-    [ExtensionCommandClass(HelpText = "Presses a markup button in the viewer so the user can draw an annotation. Trigger: the {{System}}SlideMarkup named list")]
+    [ExtensionCommandClass(HelpText = "Presses a markup button in the viewer so the user can draw an annotation. Trigger: the word add, followed by the {{System}}SlideMarkup named list")]
 #endregion PROPERTYDEF: COMMAND PALETTE PROPERTIES - DO NOT CHANGE CODE IN THIS REGION
 
 // CLASSDEF: KEEP THE NEXT LINE IN 'public class ScriptName : BaseClassName' FORMAT

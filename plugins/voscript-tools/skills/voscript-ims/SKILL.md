@@ -1,6 +1,6 @@
 ---
 name: voscript-ims
-description: Scaffold the base VoiceOver PRO starter script set for a new IMS or digital pathology slide viewer integration - Halo, AISight, Concentriq, Proscia, FlexLIS, Corista, Fusion, PathPresenter, BXLink. Use when starting a new image management system or viewer integration, when asked to "scaffold", "stub out" or "create the base scripts" for a pathology viewer, or when writing any individual viewer command script - CaseNumber, NavigateSlides, NavigateCases, RotateSlide, SetMagnificationLevel, SlideMarkup, ShowTab, PullBiomarkerResults. Covers slide navigation, magnification, annotations, and AI biomarker resulting. Also use when asked how the VOScript.Starter house style, the _Browser helper library, or the Report Builder handoff works. For an LIS reporting integration - Epic, PowerPath, CoPath, PathFlow - use voscript-lis instead.
+description: Scaffold the base VoiceOver PRO starter script set for a new IMS or digital pathology slide viewer integration - Halo, AISight, Proscia Concentriq, Techcyte Fusion, PathPresenter, Lumea BXLink, Corista DP3, Fuji Synapse, Gestalt PathFlow. Use when starting a new image management system or viewer integration, when asked to "scaffold", "stub out" or "create the base scripts" for a pathology viewer, or when writing any individual viewer command script - CaseNumber, NavigateSlides, NavigateCases, ReturnToWorklist, RotateSlide, SetMagnificationLevel, SlideMarkup, ShowTab, PanSlide, PullBiomarkerResults. Covers slide navigation, magnification, annotations, AI biomarker resulting, and the optional reporting workflow an IMS exposes when the site has an IMS-to-LIS interface. Also use when asked how the VOScript.Starter house style, the _Browser helper library, or the Report Builder handoff works. For an LIS where reporting is the whole point - Epic Beaker, PowerPath, CoPath - use voscript-lis instead.
 ---
 
 # VOScript Starter Scaffold — IMS / Slide Viewers
@@ -21,19 +21,44 @@ Every integration gets these, assuming the system supports the functionality:
 | `_CaseNumber` | ExtensionScript, `ISpeechFormatter` | Builds the accession number from spoken parameters. Format differs per system, so every namespace carries its own. |
 | `_{System}` | ExtensionScript | Extension library: window/title discovery and any system-specific helpers (deep links, panel anchors). |
 | `CaseNumber` | CommandScript | Opens a case from the worklist. Optionally starts Report Builder. |
-| `NavigateCases` | CommandScript | Next/previous case in the worklist. |
+| `NavigateCases` | CommandScript | Next/previous case, via the viewer's own case control. |
+| `ReturnToWorklist` | CommandScript | Leaves the open case and returns to the worklist. |
 | `NavigateSlides` | CommandScript | Next/previous slide in the viewer. |
 | `RotateSlide` | CommandScript | Sets slide rotation to a spoken value. |
 | `SetMagnificationLevel` | CommandScript | Sets viewer zoom from a spoken named list. |
 | `ShowTab` | CommandScript | Opens a named panel/tab in the viewer's tool tray. |
 | `SlideMarkup` | CommandScript | Activates an annotation tool by name. |
 
-Add when the system has **reporting tools**:
+`CaseNumber` and `SlideMarkup` exist in every shipped integration; the rest depend on what the
+viewer offers. `PanSlide` is common enough to consider part of the base set (6 of 9 systems).
+
+**Never scaffold `NextCase` here.** It is an LIS command — close the case and reset the LIS for the
+next search. Several shipped IMS namespaces use the name anyway for what is really `NavigateCases`
+or `ReturnToWorklist`; `script-catalog.md` lists which is which. Do not infer behaviour from that
+name when reading existing code.
+
+### The optional reporting workflow
+
+Most of these systems expose report elements, but **whether a site uses them depends on whether an
+interface has been built between the IMS and the LIS at that customer.** An IMS with reporting
+scripts in the codebase is not the same as an IMS that reports at this site.
+
+So this is not a property of the integration you can look up — **ask.** With no IMS-to-LIS
+interface the reporting surface stays in the LIS, the IMS scripts are viewer-only, and scaffolding
+the reporting set produces commands nobody can use.
+
+Add when the site reports out of the IMS:
 
 | Script | Purpose |
 |---|---|
 | `DictateSection` | Reads the case number off the open case and initializes Report Builder for it. |
-| `ReturnTo{System}` | Writes Report Builder text back into the IMS report fields (e.g. `ReturnToHaloAP`). |
+| `ReturnTo{System}` | Writes Report Builder text back into the IMS report fields (e.g. `ReturnToHaloAP`). Spoken phrase is always `send report`. |
+| `InsertChecklist` | Inserts a CAP checklist into the active document. |
+| `SendChecklist` | Pushes completed checklist content back to the IMS. |
+
+Per-system extras in this tier, worth checking for rather than assuming: sign-out
+(`PathFlow.SignoutCase` / `SaveCase`, `AISight.FinalizeCase`), order entry (`Fusion.OrderStain`,
+`BXLink.OrderStain` / `OrderTest`) and coding (`PathPresenter.AddICDCode` / `AddCPTCode`).
 
 Add when the system has **AI resulting**:
 
@@ -47,10 +72,15 @@ Add when the system has **AI resulting**:
 ## Workflow
 
 1. **Gather the inputs.** Ask only for what you cannot see:
-   - System name in PascalCase (`Halo`, `AISight`, `Flexlis`) — becomes the namespace segment.
+   - System name in PascalCase (`Halo`, `AISight`, `Concentriq`) — becomes the namespace segment.
+     Use the **product** name, not the vendor's: the palette is `Proscia Concentriq`, the namespace
+     is `Concentriq`.
    - Vendor display name for log messages (`Indica Labs Halo AP`).
    - Browser window title fragment the viewer shows (`Halo AP`, `AISight`, `Concentriq AP`).
-   - Whether the system has reporting tools, and whether it has AI resulting.
+   - **Whether this site has an IMS-to-LIS interface** — this decides whether the reporting set is
+     scaffolded at all. Ask explicitly; it is a per-customer deployment fact, not a property of the
+     product.
+   - Whether it has AI resulting.
    - Output directory (default: the current project folder).
 
 2. **Check the tenant's prerequisites first.** Generated scripts call `_Browser` and
@@ -147,8 +177,18 @@ That matters because **not every tenant carries every integration.** A QA or cus
 hold almost none of them, and a pinned revision number rots — the library revision differs per
 tenant and moves.
 
-The local cache is the *newer* source when it happens to hold what you need, so prefer it for an
-integration it actually has. Everything below is about reading it safely.
+**If the `voicebrook-pro` MCP is connected, prefer it over the cache.** It reads the same tenant
+the client is signed into, live, with no path or registry work: `pro_script_list` /
+`pro_script_search` to find, `pro_script_get` for full source and declared properties, and
+`pro_config_get` on `R_CommandPalette` for the **real triggers** — the only reliable way to learn
+which named list a command actually uses. `pro_config_get` on `R_NamedListSetup` / `GlobalSetup`
+gives every list with its `listType`. Reads need no lock. One caveat: `pro_script_list` reports
+`customScriptStatus: uncompiled` for everything, so take the real status from `pro_script_get`.
+
+The MCP and the cache read the *same* tenant, so both carry the tenant caveat below equally.
+
+The local cache is the fallback, and the *newer* source when it happens to hold what you need.
+Everything below is about reading it safely.
 
 Every published script for a given tenant is at
 `{ProgramData}\{ClientEnvironment}\{tenant}\VO_LocalCache\R_ScriptSource`.
@@ -187,9 +227,14 @@ are work in progress. The source is the XML-escaped `ScriptCode` attribute:
 ```
 
 Consult it before writing anything non-obvious. `Halo`, `AISight`, `Fusion`, `BXLink`,
-`Concentriq`, `Corista`, `PathFlow`, `PathPresenter` and `VBPathView` each carry a full or partial
+`Concentriq`, `Corista`, `Fuji`, `PathFlow` and `PathPresenter` each carry a full or partial
 base set, and comparing two or three of them shows which parts of a pattern are universal and
 which are that vendor's quirk. The helper library is `VOScript.Starter._Browser` - read the highest `P` revision in whichever tenant you are looking at. Do not rely on a pinned revision number; it differs per tenant and moves.
+
+`Halo` is the most recent and cleanest of these, so prefer it as the reference for structure. One
+thing not to carry across: its `_CaseNumber` hardcodes the year (`"-23-"`) as a sandbox convenience
+so the year need not be spoken against test cases. Fine there, must be replaced with the derived
+year before distribution.
 
 What the cache is good for is **patterns** — how a return-to-IMS is structured, which addressing
 shapes exist, what the house style looks like. It cannot tell you this vendor's control types or
@@ -217,7 +262,7 @@ That is what step 3 is for.
 - Never guess an element name into a shipped script. Leave the `TODO:` and say so.
 - **Finish or delete every generated script — never leave one as raw scaffold.** All of them
   compile against the same `_{System}` library, so the moment you customize that library the
-  untouched scaffolds break. Removing `CaseNumberTitlePattern` from `_Proscia` (right call: the
+  untouched scaffolds break. Removing `CaseNumberTitlePattern` from `_Concentriq` (right call: the
   Concentriq title never carries the case number) left the unresolved `NavigateCases` calling a
   member that no longer existed, and it failed to compile on sync. When a system genuinely lacks
   a capability, say so and **delete the file** — do not hand over a scaffold as a placeholder.
