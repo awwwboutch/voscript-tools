@@ -10,21 +10,48 @@ confirmed against the live application before it works.
 `ExtensionScript, ISpeechFormatter`. Assembles the accession number from the spoken case type,
 year and digits. Every namespace carries its own because the format differs per system.
 
-**Confirm:** the exact assembled shape. Real formats in use:
+**Confirm:** the exact assembled shape against the customer's real accession numbers. Do not
+carry a shape over from another integration — the separator placement differs per system, and
+`Fuji` does not even follow the `_CaseNumber` naming convention (its formatter is
+`FormatFujiCaseNumber`).
 
-| System | Shape | Example |
-|---|---|---|
-| Halo | `<Type><YY>-<counter>` | `25GP-19429` |
-| AISight | `<Type>-<YY>-<counter>` | `SP-26-00123` |
-| FlexLIS | `<Type><YY>-<counter>` | `SN26-00123` |
+`Property()` does not work here — see the `ISpeechFormatter` section in `conventions.md` before
+you wire any of the declared properties up.
 
-**Do not repeat these bugs:**
-- Reading `Property("LeadingZeroes", ...)` against a declared `LeadingZeros`. Silently returns
-  the default forever.
-- Building the zero pad with `new string('0', counterLength - shortNum.Length)`. Throws
-  `ArgumentOutOfRangeException` the moment more digits are spoken than `CounterLength`. Use
-  `PadLeft`.
-- Hardcoding the year (`caseType + "-" + "23" + "-" + fullNum` shipped in one namespace).
+### A hardcoded year is normal *during* development — strip it before distribution
+
+The published `Halo._CaseNumber` contains `string caseNumber = caseType + "-23-" + fullNum;`. That
+is **deliberate**: the sandbox's test cases are all year 23, and hardcoding it means not having to
+speak the year on every `CaseNumber` command while developing. It is a convenience, not a defect.
+
+It does have to come out before the integration goes anywhere near a customer. The correctly
+derived year is already computed a few lines above (`DateTime.Now.Year...Substring(2)`) and simply
+overwritten, so the fix is to use the variable that is already there.
+
+Two things follow from this:
+
+- **Don't copy a hardcoded year forward.** If you scaffold from an existing `_CaseNumber`, that
+  literal is the first thing to check.
+- **If you hardcode one yourself, say so in a comment** with what it should become, so the next
+  reader can tell a sandbox shortcut from a mistake.
+
+**Genuine things to get right:**
+
+- **The zero pad is guarded by the palette, not the code.**
+  `new string('0', counterLength - shortNum.Length)` throws `ArgumentOutOfRangeException` if more
+  digits arrive than `CounterLength`. In Halo that cannot happen, because the trigger caps the
+  repeat at `[<Digit>|1-5]` against a `CounterLength` of 6 — the constraint lives in the command
+  palette.
+
+  Know where the guard is. If you widen the `<Digit>` repeat on the trigger, or lower
+  `CounterLength`, this line starts throwing and nothing in the script will tell you why.
+  `shortNum.PadLeft(counterLength, '0')` removes the coupling and degrades instead of throwing, so
+  prefer it in new code — but the existing form is not a live defect.
+- **Read the property name back exactly as declared.** `Property("LeadingZeroes", ...)` against a
+  declared `LeadingZeros` silently returns the default forever.
+- Note that a declared property an `ISpeechFormatter` never reads is inert — `Halo`'s
+  `LeadingZeros` is accepted by the static overload and ignored, and its declared `CounterLength`
+  default of 5 sits next to a hardcoded 6. Harmless, but don't expect the palette to control it.
 
 ---
 
@@ -34,8 +61,13 @@ Window and title discovery, plus anything more than one command needs. Two title
 picking the wrong one is a recurring bug — see `browser-api.md`.
 
 Systems reached by URL rather than by clicking the worklist also put their deep-link builders and
-an `EnsureWindow` helper here. `_Flexlis.cs` is the model: one reused window per surface
-(Pathologist Review, Slide Viewer), each pinned to a configured monitor.
+an `EnsureWindow` helper here: one reused window per surface (e.g. Pathologist Review, Slide
+Viewer), each pinned to a configured monitor.
+
+> The reference implementation for this was `_Flexlis.cs`. **There is no `FlexLIS` namespace in
+> the current instance** — verify it exists in the tenant you are reading before citing it, and
+> build the pattern from `_Window` in `browser-api.md` if it does not. The pattern is sound; the
+> example may not be available to you.
 
 ---
 
@@ -45,7 +77,7 @@ Two shapes:
 
 1. **Worklist search** (Halo, AISight, the generated template). Set the filter column, type the
    accession, wait for the row, click the link. Works everywhere; depends on element names.
-2. **Deep link** (FlexLIS). Build the URL for each surface and navigate a reused window to it.
+2. **Deep link.** Build the URL for each surface and navigate a reused window to it.
    Much more robust when the vendor has stable routes — no dependence on column order or on the
    viewer link being at a fixed child index. Prefer this when the vendor exposes routes.
 
@@ -57,23 +89,67 @@ window or a new one.
 
 ---
 
-## `NavigateCases` — next/previous case
+## `NavigateCases` / `ReturnToWorklist` / `NextCase` — three different commands
 
-Presses the next-case or previous-case control in the **slide viewer**, not the worklist. Runs
-against an open case, so it needs `FindCurrentTitlePageByRegex`.
+These get conflated constantly, and the shipped scripts are themselves inconsistent. Pick the
+name that matches the *behavior*:
 
-The proven shape (Halo) is the caption-Text idiom: find `"Next Case"` / `"Previous Case"` as
-`Text`, click the parent. Search for a `Button` by that name and you get null.
+| Command | Surface | What it does |
+|---|---|---|
+| `NavigateCases` | IMS | Presses the next/previous case control **in the slide viewer** to move through the worklist. Bidirectional, driven by `<NextPrevious>`. |
+| `ReturnToWorklist` | IMS | Sends the user out of the open case, back to the worklist. |
+| `NextCase` | **LIS only** | Closes out the current case and resets the LIS to a blank state, ready for `CaseNumber` to search for the next one. |
+
+**Do not scaffold `NextCase` for an IMS.** It is an LIS concept. The legacy CoPath and PowerPath
+help text is the definition: *"Save the case, then either Close or Clear the case from Case
+Information Window."*
+
+The shipped IMS scripts do not respect this, so **do not infer behavior from the name when
+reading the cache.** Every one of these is named `NextCase` today:
+
+- `Fusion` — `<NextPrevious>` → clicks `"Next case"` / `"Previous case"`. This is `NavigateCases`.
+- `AISight` — clicks `"Go to next accession"`. `NavigateCases`, one-directional only.
+- `Concentriq` — clicks the `format_list_bulleted` link. This is `ReturnToWorklist`.
+- `Corista` — clicks the `"Corista"` logo hyperlink. `ReturnToWorklist`.
+- `PathPresenter` — clicks the return arrow beside the logo. `ReturnToWorklist`; its own comment
+  says so.
+- `Fuji` — clicks `"All Cases"` → `"My Cases"` → `"All Cases"`. A worklist *refresh*, not case
+  navigation at all.
+
+`AISight` additionally has a correctly-named `ReturnToWorklist` alongside its `NextCase`, so that
+namespace carries both actions under mismatched names.
+
+### Writing `NavigateCases`
+
+Runs against an open case, so it needs `FindCurrentTitlePageByRegex`, not
+`FindCurrentTitlePage` — and note that several of the scripts above get this wrong too.
+
+Two proven shapes:
+
+- **Caption-Text idiom** (Halo): find `"Next Case"` / `"Previous Case"` as `Text`, click the
+  parent. Searching for a `Button` by that name returns null.
+- **Real named buttons** (Fusion): `FindElementOnPage(manager, "Next case", UIAControlType.Button)`
+  works directly. Note the casing differs from Halo's — `"Next case"` vs `"Next Case"`.
 
 Not every viewer has these controls. If this one does not, say so and drop the script rather than
-shipping something that half-works.
+shipping something that half-works — and check whether what the vendor actually offers is a
+return-to-worklist instead.
+
+### Writing `ReturnToWorklist`
+
+One click, but the control is almost never named usefully. The three shipped versions each anchor
+differently: a Material ligature (`format_list_bulleted`), the product logo as a `Hyperlink`, and
+a sibling walk from the logo `Image`. Read `browser-api.md` on ligatures and anchor walks first,
+and do **not** copy PathPresenter's or BXLink's anchor — both address Chrome's missing-image
+placeholder string, which is documented there as a hard no.
 
 ---
 
 ## `NavigateSlides` — next/previous slide
 
-A keystroke, and usually nothing else. `PageDown`/`PageUp` in Halo and AISight; `Down`/`Up` in
-FlexLIS, which also needs the image library panel open first.
+A keystroke, and usually nothing else. `PageDown`/`PageUp` in Halo and AISight. Some viewers use
+`Down`/`Up` and need the image library panel opened first — confirm both the key and the
+precondition against the live viewer.
 
 **Call `WindowTools.EnsureForegroundWindow(windowCaption)` before the keypress.** Without it the
 command drives whatever the pathologist last clicked. Halo's version is six lines and never opens
@@ -172,7 +248,14 @@ pathologist filled in by hand.
 Report Builder and the pathologist can retry. Releasing a document whose text never landed loses
 the dictation.
 
-Palette entries go under both `SpeechBox Editor` and `Text Editor`.
+The palette entry goes under `SpeechBox Editor` for the Premium path, and additionally under
+`Text Editor` only if the site runs Classic. The trigger is `send report` — the same phrase on
+every LIS and IMS, deliberately. Do not add a `return to <System>` alternative.
+
+**The script keeps the `ReturnTo<System>` name.** That is the long-standing convention and it
+stays — `ReturnToHaloAP`, `ReturnToAISight`, `ReturnToFusion`, `ReturnToPathFlow`. Name it for the
+product, not the namespace, where those differ. Only the *spoken phrase* was standardized to
+`send report`; the script name was never part of that change.
 
 ---
 

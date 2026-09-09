@@ -36,6 +36,21 @@ entry), and the adapter. The mapping and the engine are shared and should not be
 string ReadValueByLabel(string label);
 ```
 
+## Who has this implemented
+
+Three vendors carry the full adapter + registry + labels stack: **Halo**, **Corista** and
+**VBPathView**. Their structure matches this document — `_<System>Adapter`,
+`_<System>LabelRegistry` at the namespace root, overlays under `<Namespace>.Labels`. The shared
+mappings live in `VOScript.Starter.CapResultParser.Mappings` (`_BreastBmk169Mapping`,
+`_LungBmk227Mapping`). `Halo` is the one to read first; it has both a Breast Bmk 169 and a Lung
+Bmk 227 overlay.
+
+**Corista also has a wider AI surface than this pipeline covers** — `StartAnalysis`,
+`ShowAnalysis`, `ToggleAnalysisLabels`, `GetResult`, `DownloadResults`, plus `CoristaAILabel`,
+`CoristaAnalysisType`, `CoristaResultLabel` and `CoristaResultTag` named lists. Those drive the
+vendor's own analysis UI and are separate from the CAP checklist pipeline described here. Do not
+assume a vendor's AI commands all funnel through `PullBiomarkerResults`.
+
 ## Adding a vendor
 
 1. `PullBiomarkerResults.cs` — copy the generated one. It only wires things together.
