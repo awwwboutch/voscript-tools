@@ -1,7 +1,7 @@
 {
   "name": "voscript-tools",
   "displayName": "VOScript Tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Scaffold and reference for VoiceOver PRO starter script sets. Carries one skill for IMS / slide viewer integrations and one for LIS reporting integrations, over a shared body of house conventions.",
   "author": {
     "name": "Voicebrook"
