@@ -26,6 +26,34 @@ working directory:
 `/plugin` opens an interactive panel, so it needs an interactive `claude` terminal session; some
 surfaces do not host that panel.
 
+## Updating
+
+An installed copy does **not** follow the repo on its own. It stays on the version it was installed
+at until it is updated, unless auto-update is turned on for the `voicebrook` marketplace.
+
+From a shell with the Claude Code CLI installed (`npm install -g @anthropic-ai/claude-code` if
+`claude` is not recognised; open a new window after installing):
+
+    claude plugin marketplace update voicebrook
+    claude plugin update voscript-tools@voicebrook
+
+Or in an interactive `claude` session: `/plugin` → **Marketplaces** → `voicebrook` → **Update**.
+That screen can also turn on auto-update for the marketplace, so later versions arrive by
+themselves.
+
+Start a new session afterwards; skills load when a session starts. To check what is installed,
+look for `voscript-tools@voicebrook` in `~\.claude\plugins\installed_plugins.json`.
+
+### Releasing a change
+
+Updates are keyed on the version number, so **a change that is not accompanied by a version bump
+never reaches anyone's installed copy**. The 0.1.0 install sat unchanged for three weeks this way.
+
+1. Bump `"version"` in **both** `plugins/voscript-tools/.claude-plugin/plugin.json` and
+   `.claude-plugin/marketplace.json`.
+2. Commit and push to `main`.
+3. If the change is one `USERS.md` says needs a heads-up, tell the people listed there.
+
 ## What is in it
 
 | Skill | Use for |
