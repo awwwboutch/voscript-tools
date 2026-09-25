@@ -30,6 +30,18 @@ is whatever is published in PRO.
 | `AISight.DictateSection.cs` | Report Builder handoff, both Premium and Classic branches. |
 | `AISight.ReturnToAISight.cs` | The return path — enumerate parts, write fields, `MarkEvent`, `MarkNewStage`, `SaveAndRelease`. |
 
+### Added later, not from the 2026-09-01 snapshot
+
+These two were written 2026-09-25 and compiled and tested in the `Fall26` tenant in simulate
+mode (no camera attached). They have **not** run against a real camera or been published.
+
+| File | The shape it shows |
+|---|---|
+| `Lumea._LumeaCamera.cs` | A local-device client as an `ExtensionScript`: HTTP with an address fallback, raw-response logging, error-id-to-message mapping, a simulate switch, and a SITE CONFIGURATION region. |
+| `Lumea.LumeaCameraCapture.cs` | Building and filling gross specimens from outside data. Covers undictated-placeholder detection, PartKey matching across numbered copies, append-never-overwrite, picklist values by ExportKey, and cursor placement after a dialog. See `report-builder-parts.md`. |
+
+`SimulateCamera` is `true` in these copies; a real deployment sets it to `false`.
+
 ## Reading these critically
 
 They are production code, not exemplars. Two things in them are known to be worth *not* copying:

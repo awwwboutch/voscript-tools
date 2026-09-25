@@ -97,9 +97,12 @@ reference material is shared:
   properties, named lists and the Dragon spoken-form rules, palette entries, Report Builder handoff.
 - `${CLAUDE_PLUGIN_ROOT}/shared/references/browser-api.md` — `_Browser` / `_Window` /
   `BrowserManager`, the addressing idioms, and the gotchas.
+- `${CLAUDE_PLUGIN_ROOT}/shared/references/report-builder-parts.md` — working inside the open
+  document: lists, adding specimens, PartKey matching, undictated placeholders, picklist fields,
+  the current specimen, the cursor. Read it before any script that writes into a list.
 - `${CLAUDE_PLUGIN_ROOT}/shared/references/script-catalog.md` — per-script intent and variants.
   IMS-focused today; LIS entries belong here too.
-- `${CLAUDE_PLUGIN_ROOT}/shared/examples/` — fifteen real published scripts, always present
+- `${CLAUDE_PLUGIN_ROOT}/shared/examples/` — fifteen real published scripts plus two newer Lumea ones, always present
   regardless of what the local machine has cached. `AISight.DictateSection.cs` and
   `AISight.ReturnToAISight.cs` are the two that matter most here: they are the Report Builder
   handoff and the return path, which are the spine of any LIS integration. Read those before

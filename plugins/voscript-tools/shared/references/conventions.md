@@ -398,6 +398,10 @@ if (DocumentStore.SaveAndRelease(SpeechBox.ActiveDocument)) SpeechBox.Close();
 Application.SetCommandDocument("Doc-<System>-Surgical");
 ```
 
+Once the document is open, reading and changing its parts is covered in `report-builder-parts.md`.
+That doc covers lists, adding specimens from templates, PartKey matching, detecting an undictated
+placeholder, picklist fields, the current specimen and the cursor.
+
 ## Not available in PRO
 
 - **`System.Speech` / `SpeechSynthesizer`.** PRO does not reference it, so a script cannot speak

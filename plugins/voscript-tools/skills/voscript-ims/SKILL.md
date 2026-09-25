@@ -169,7 +169,7 @@ Add when the system has **AI resulting**:
 ## Where the real examples live
 
 **Start with the examples bundled in this plugin** — `${CLAUDE_PLUGIN_ROOT}/shared/examples/`,
-whose `README.md` maps each file to the shape it demonstrates. Fifteen real published scripts
+whose `README.md` maps each file to the shape it demonstrates. Fifteen real published scripts, plus two newer tested Lumea scripts,
 covering every addressing idiom, the Report Builder handoff and the return path. They are always
 present, so nothing depends on what a given machine has cached.
 
@@ -250,6 +250,9 @@ That is what step 3 is for.
 - `${CLAUDE_PLUGIN_ROOT}/shared/references/script-catalog.md` — per-script intent, the known-good variants of each pattern,
   and what has to be verified per system.
 - `${CLAUDE_PLUGIN_ROOT}/shared/references/ai-resulting.md` — the CAP biomarker pipeline and how a vendor plugs into it.
+- `${CLAUDE_PLUGIN_ROOT}/shared/references/report-builder-parts.md` — working inside the open Report Builder document:
+  lists, adding specimens, PartKey matching, picklist fields, the cursor, and filling the gross from
+  a device.
 
 ## Rules that are not optional
 
