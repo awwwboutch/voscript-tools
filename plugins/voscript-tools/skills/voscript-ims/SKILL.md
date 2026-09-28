@@ -130,6 +130,13 @@ Add when the system has **AI resulting**:
    Files land as `VOScript.Starter.{System}.{ScriptName}.cs`, flat, matching the naming
    convention already used in these project folders.
 
+   Compile-check them before any go into a tenant - PRO compiles a tenant as one assembly, so one broken script
+   blocks them all:
+
+   ```bash
+   pwsh -File "${CLAUDE_PLUGIN_ROOT}/shared/scripts/Test-Compile.ps1" -Path . -IncludePrerequisites
+   ```
+
 4. **Dump the UIA tree before resolving anything.** Run `_Browser.DumpTree` once on every surface
    the scripts touch — worklist, case detail, viewer, and each menu or panel that has to be open
    — and keep the output to hand. This is mandatory, not advisory. Claude in Chrome is for

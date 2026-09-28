@@ -33,11 +33,14 @@ param(
     # Stage the bundled source of anything missing or incompatible here.
     [string]$OutDir,
 
-    # Include _Premium, needed by DictateSection and the return command.
+    # Include _Premium (and _Common, which it calls), needed by DictateSection and the return commands.
     [switch]$IncludeReporting,
 
     # Include the CapResultParser libraries, needed by PullBiomarkerResults.
     [switch]$IncludeAi,
+
+    # Include _Word, needed by an LIS scaffolded with -Editor Word.
+    [switch]$IncludeWord,
 
     # List every member difference, not just the ones the templates call.
     [switch]$Detailed
@@ -81,7 +84,7 @@ $calls = @{}
 if (Test-Path $templateRoot) {
     $text = (Get-ChildItem $templateRoot -Recurse -Filter *.cs | Get-Content -Raw) -join "`n"
 
-    foreach ($m in [regex]::Matches($text, '(_Browser|_Premium|_CapEngine|_TemplateDetector)\.([A-Za-z_]\w*)\s*\(')) {
+    foreach ($m in [regex]::Matches($text, '(_Browser|_Premium|_Common|_Word|_CapEngine|_TemplateDetector)\.([A-Za-z_]\w*)\s*\(')) {
         $lib = $m.Groups[1].Value; $mem = $m.Groups[2].Value
         if (-not $calls[$lib]) { $calls[$lib] = New-Object System.Collections.Generic.HashSet[string] }
         [void]$calls[$lib].Add($mem)
@@ -91,6 +94,9 @@ if (Test-Path $templateRoot) {
         [void]$calls['BrowserManager'].Add('GetBrowserController')
     }
 }
+
+if (-not $calls['_Common']) { $calls['_Common'] = New-Object System.Collections.Generic.HashSet[string] }
+[void]$calls['_Common'].Add('ConvertNumToLetter')   # called by _Premium, not by a template
 
 # short name used to look up $calls, e.g. VOScript.Starter.CapResultParser._CapEngine -> _CapEngine
 function Get-ShortName { param([string]$Key)
@@ -124,6 +130,7 @@ function Get-Hash { param([string]$Text)
 $tiers = @('core')
 if ($IncludeReporting) { $tiers += 'reporting' }
 if ($IncludeAi)        { $tiers += 'ai' }
+if ($IncludeWord)      { $tiers += 'word' }
 $wanted = $manifest | Where-Object { $tiers -contains $_.Tier }
 
 $results = foreach ($item in $wanted) {

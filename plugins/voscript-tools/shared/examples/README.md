@@ -42,6 +42,22 @@ mode (no camera attached). They have **not** run against a real camera or been p
 
 `SimulateCamera` is `true` in these copies; a real deployment sets it to `false`.
 
+### PowerPath Core - the LIS reference, added 2026-09-28
+
+Rewritten and live-tested in `demo\sales` against PowerPath with Word as the editor. Drafts there at the time of the
+snapshot. These are what the `voscript-lis` templates were built from.
+
+| File | The shape it shows |
+|---|---|
+| `PowerPath._PowerPath.cs` | The LIS library: window and case-number patterns, and the Word report layout (plain-text headers) on top of `_Word`. |
+| `PowerPath._CaseNumber.cs` | Per-namespace accession formatter replacing `DefaultCaseNumber` (`S-26-00026`). |
+| `PowerPath.Core.CaseNumber.cs` | Open the case, confirm it is really showing, answer only prompts that are up, compare case numbers by parts. |
+| `PowerPath.Core.DictateSection.cs` | Works from the LIS or from Word; polls for Word instead of fixed waits; sets CaseNumber/CaseType on every path. |
+| `PowerPath.Core.ReturnToWord.cs` | Thin: validation, the right report window, `_PowerPath.TransferReportToWord`, release. |
+| `PowerPath.Core.ReturnPowerPath.cs` | Save-back with prompts in any order and the status progression; backs out of Final and counts it as success. |
+| `PowerPath.Core.NextCase.cs` | Waits for the Word report to close instead of silently skipping. |
+| `PowerPath.Core.CaseComplete.cs` | The `*_Logic` chain, stopping at the first step that did not finish. |
+
 ## Reading these critically
 
 They are production code, not exemplars. Two things in them are known to be worth *not* copying:

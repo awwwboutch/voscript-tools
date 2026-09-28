@@ -18,6 +18,18 @@
     "Tier": "reporting"
   },
   {
+    "Key": "VOScript.Starter._Common",
+    "Type": "ExtensionScript",
+    "Revision": "2P-3445-12",
+    "Tier": "reporting"
+  },
+  {
+    "Key": "VOScript.Starter._Word",
+    "Type": "ExtensionScript",
+    "Revision": "1D-3650-2",
+    "Tier": "word"
+  },
+  {
     "Key": "VOScript.Starter.CapResultParser._IAiResultSource",
     "Type": "ExtensionScript",
     "Revision": "1P-3235-2",
@@ -27,6 +39,18 @@
     "Key": "VOScript.Starter.CapResultParser._CapTypes",
     "Type": "ExtensionScript",
     "Revision": "2P-3250-3",
+    "Tier": "ai"
+  },
+  {
+    "Key": "VOScript.Starter.CapResultParser.Mappings._BreastBmk169Mapping",
+    "Type": "ExtensionScript",
+    "Revision": "3P-3501-16",
+    "Tier": "ai"
+  },
+  {
+    "Key": "VOScript.Starter.CapResultParser.Mappings._LungBmk227Mapping",
+    "Type": "ExtensionScript",
+    "Revision": "1P-3469-3",
     "Tier": "ai"
   },
   {

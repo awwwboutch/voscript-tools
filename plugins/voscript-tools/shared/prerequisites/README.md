@@ -7,12 +7,13 @@ Not every tenant has them. A fresh QA or customer tenant often has none, and an 
 a revision predating helpers the templates call. This bundle exists so a missing library is a
 two-minute fix rather than a request to whoever has a tenant that does have it.
 
-Exported 2026-09-01 from `demo\sales`, highest published (`P`) revision of each.
+Exported 2026-09-01 from `demo\sales`, highest published (`P`) revision of each. `_Common`, `_Word` and the two CAP
+mappings were added 2026-09-28; `_Word` is a draft there, live-tested with PowerPath.
 
 ## Check before generating
 
 ```powershell
-pwsh -File "${CLAUDE_PLUGIN_ROOT}/shared/scripts/Test-Prerequisites.ps1" -IncludeReporting -IncludeAi -OutDir .\prereqs
+pwsh -File "${CLAUDE_PLUGIN_ROOT}/shared/scripts/Test-Prerequisites.ps1" -IncludeReporting -IncludeAi -IncludeWord -OutDir .\prereqs
 ```
 
 It resolves the tenant from the registry, reports `OK` / `OLDER` / `MISSING` per library, and with
@@ -25,13 +26,29 @@ stage older ones too. Pass `-CachePath` or `-Tenant` to target a specific tenant
 |---|---|---|---|
 | `_Browser` | core | `ExtensionScript` | Every browser-driving script. ~98 KB. |
 | `Browser.Manager.BrowserManager` | core | `IDisposable` | Every browser-driving script. |
-| `_Premium` | reporting | `ExtensionScript` | `DictateSection`, `ReturnTo{System}` — `GetWritelock`, `SetupDocument`. |
+| `_Premium` | reporting | `ExtensionScript` | `DictateSection`, `ReturnTo{System}` — `GetWritelock`, `SetupDocument`, `UpdateStage`. |
+| `_Common` | reporting | `ExtensionScript` | `_Premium` calls `_Common.ConvertNumToLetter` - without it `_Premium` does not compile. |
+| `_Word` | word | `ExtensionScript` | An LIS scaffolded with `-Editor Word`. See `references/word-editor.md`. |
 | `CapResultParser._IAiResultSource` | ai | `ExtensionScript` | The adapter contract. |
 | `CapResultParser._CapTypes` | ai | `ExtensionScript` | Shared CAP types. |
+| `CapResultParser.Mappings._BreastBmk169Mapping`, `._LungBmk227Mapping` | ai | `ExtensionScript` | The shared CAP mappings `_TemplateDetector` resolves to - without them it does not compile. |
 | `CapResultParser._TemplateDetector` | ai | `ExtensionScript` | `GetActivePartKey`, `GetMappingForPartKey`. |
 | `CapResultParser._CapEngine` | ai | `ExtensionScript` | `_CapEngine.Run`. |
 
-Core is always required. Reporting is required only with `-Reporting`, AI only with `-AiResulting`.
+Core is always required. Reporting is required only with `-Reporting` (and always for an LIS), AI only with
+`-AiResulting`, Word only for an LIS with `-Editor Word`.
+
+`_Common` and the mappings were missing from this bundle until `Test-Compile.ps1` compiled it as a whole - a fresh
+tenant seeded from the older bundle could not compile `_Premium` or `_TemplateDetector`.
+
+## Compile-check a scaffold without a tenant
+
+```powershell
+pwsh -File "${CLAUDE_PLUGIN_ROOT}/shared/scripts/Test-Compile.ps1" -Path .\generated -IncludePrerequisites
+```
+
+Compiles the generated files plus this bundle with the PRO client's own compiler and assemblies. PRO compiles a
+tenant's scripts as one assembly, so a script that does not compile blocks the whole tenant - check here first.
 
 `WindowTools` is not here — it ships with PRO rather than being a starter script.
 

@@ -59,7 +59,7 @@ never reaches anyone's installed copy**. The 0.1.0 install sat unchanged for thr
 | Skill | Use for |
 |---|---|
 | `voscript-ims` | IMS / slide viewer integrations — Halo, AISight, Concentriq, Corista, Fusion, BXLink. Slide navigation, magnification, annotations, AI biomarker resulting. |
-| `voscript-lis` | LIS integrations where reporting is the main surface — Epic, PowerPath, CoPath, PathFlow. **Stub — not yet exercised on a real job.** |
+| `voscript-lis` | LIS integrations where reporting is the main surface — PowerPath, CoPath, Epic, Meditech. Core set (CaseNumber, DictateSection, ReturnToWord / ReturnTo{System}, NextCase, CaseComplete) built from the PowerPath rewrite live-tested 2026-09-28; Word or page editor, desktop or browser client. |
 
 Invoke as `/voscript-ims` or `/voscript-lis`, or let Claude pick based on what you describe.
 

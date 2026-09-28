@@ -1,0 +1,80 @@
+NAMED LISTS AND PALETTE - {{Namespace}} ({{Vendor}})
+Generated {{Date}} by the voscript-lis skill.
+
+Format is  Text\Spoken form
+  Text          the value the script receives from SpeechParams
+  Spoken form   what the pathologist says, written to the Dragon rules at the bottom
+
+Paste each block into the Global Named List Manager, replacing every TODO with a value read off the live application.
+THE LIST NAME AND THE PALETTE TRIGGER MUST MATCH - nothing else reads the name.
+
+
+--------------------------------------------------------------------------------
+{{CaseTypeList}}      (Extended list - it needs the Target column)
+  Used by  _CaseNumber / CaseNumber, and _{{System}}.TemplateForCase
+  Trigger  <{{CaseTypeList}}> [<Year> dash|] [<Digit>|1-5]
+  Text is the case-type prefix built into the accession number; Target is the Report Builder template for that
+  case type. A case type with no Target falls back to {{ReportTemplate}}.
+--------------------------------------------------------------------------------
+TODO S\surgical
+TODO C\cytology
+TODO NG\non gyn|non gynecologic
+
+
+--------------------------------------------------------------------------------
+Already global - do not recreate under a system-specific name
+--------------------------------------------------------------------------------
+Digit          digits spoken in an accession number
+Year           two-digit year
+$Sections      report sections - DictateSection (dynamic, from the open template; takes the $)
+
+
+--------------------------------------------------------------------------------
+COMMAND PALETTE
+--------------------------------------------------------------------------------
+  Command            Palette application                  Trigger
+  CaseNumber         {{Vendor}} (the LIS window monitor)   <{{CaseTypeList}}> [<Year> dash|] [<Digit>|1-5]
+//@if Word
+  DictateSection     {{Vendor}} AND Microsoft Word          dictate <$Sections>
+  ReturnToWord       SpeechBox Editor                      send report
+//@else
+  DictateSection     {{Vendor}}                            dictate <$Sections>
+  {{ReturnToName}}   SpeechBox Editor                      send report
+//@endif
+//@if SaveToLis
+  {{ReturnToName}}   Microsoft Word                        return to {{Vendor}}   (spoken form to the Dragon rules)
+//@endif
+  CaseComplete       SpeechBox Editor                      case complete
+  NextCase           {{Vendor}}                            next case
+
+  "send report" is the same phrase on every LIS and IMS - do not add a "return to <System>" alternative to it.
+//@if Word
+  DictateSection has to be live in Microsoft Word as well as in {{Vendor}}, or it only works from {{Vendor}}.
+//@endif
+  Check each item points at the {{Namespace}}.{{Tier}} class - an older VOScript.Standard item with the same name is
+  easy to leave behind (PowerPath's NextCase still pointed at VOScript.Standard.PowerPath.NextCase).
+
+
+--------------------------------------------------------------------------------
+STATE PROPERTIES THE CORE SET READS
+--------------------------------------------------------------------------------
+  Edition                  Premium        only the Report Builder edition is scaffolded
+  RoleCategory             GROSS | SIGNOUT   picks the section a spoken case number opens on
+  UserStatus               Test           appends _Test to the document ID
+  AllowValidationOverride  true | false
+//@if SaveToLis
+  UpdateStatus             True | False   answer the status-update prompt at all
+  NextStatus               (blank)        blank = accept {{Vendor}}'s own next step; set = an override, checked after
+                                          entry. A step that signs the case out is never accepted either way.
+//@endif
+
+
+--------------------------------------------------------------------------------
+DRAGON SPOKEN FORM RULES
+--------------------------------------------------------------------------------
+  No punctuation           non gyn|non gynecologic   not  non-gyn
+  Numbers written as words twenty X                  not  20X
+  Acronyms spaced out,
+  letters capitalised      N G                       not  NG
+  Multiple spoken forms
+  are pipe-separated       surgical|surgical pathology

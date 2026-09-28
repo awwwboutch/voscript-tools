@@ -262,3 +262,98 @@ product, not the namespace, where those differ. Only the *spoken phrase* was sta
 ## `PullBiomarkerResults` and the Labels namespace
 
 See `ai-resulting.md`.
+
+---
+
+# LIS Core set
+
+What `New-StarterScripts.ps1 -Kind Lis` generates, and why each script is shaped the way it is. Grounded in the
+PowerPath Core rewrite, live-tested in `demo\sales` on 2026-09-28; the tested scripts are in `shared/examples/`
+(`PowerPath.*.cs`). Every command lives in `VOScript.Starter.<System>.Core` and holds the *workflow*; everything that
+depends on how the LIS is driven is in `_<System>` - see `desktop-api.md` and `word-editor.md`.
+
+| Script | Word editor | Page editor |
+|---|---|---|
+| `CaseNumber` | always | always |
+| `DictateSection` | always | always |
+| `ReturnToWord` | always | - |
+| `ReturnTo<LIS>` | save-back, unless `-NoSaveToLis` | writes the report fields |
+| `NextCase` | always | always |
+| `CaseComplete` | always | always |
+
+## Every command is a thin `CommandScript` plus a `*_Logic : ExtensionScript`
+
+`public static bool Execute(...)` on the Logic class, `true` only when the step finished. `CaseComplete` chains them
+with `if (!X_Logic.Execute(...)) return;`, so a failed transfer never ends with the case cleared under the
+pathologist. Keep that shape when extending: a Logic class that returns `void` cannot be chained safely.
+
+## `CaseNumber`
+
+Builds the accession with the namespace's own `_CaseNumber`, then:
+
+- **Report Builder already open** - the number is dictated text (a referenced case). Insert it into the focused field
+  and **do not** touch the CaseNumber / CaseType state of the open case.
+- **Word report open** (Word editor) - same case: straight to DictateSection. Another case: stop and say so, before
+  touching the LIS.
+- Otherwise `_<System>.OpenCase`, which returns the case number **as the LIS shows it**, or `""`. Nothing downstream
+  runs on `""`. Set the state from the LIS's own formatting so later comparisons against a window title match.
+
+Compare case numbers with `_<System>.SameCase` (prefix, year, counter numerically), never string equality - a spoken
+`S-26-26` and a displayed `S-26-00026` are the same case.
+
+## `DictateSection`
+
+Works from the LIS **and** from the Word report. From Word, the case comes off Word's title bar; from the LIS, it comes
+from `_<System>.LoadedCase` and the Word report is opened first (`_<System>.OpenWordReport`). Report Builder already
+open: just move to the section - no LIS or Word work at all.
+
+**Set `CaseNumber` and `CaseType` on every entry path.** The template lookup and the document store key off them, and
+PowerPath's old Word path never set them - dictating from Word used the previous case's state.
+
+`fromCaseNumber: true` (from CaseNumber or a scanner) means the speech parameters are the accession, not a section, so
+the role's default section is used (SIGNOUT: Diagnosis, otherwise Gross).
+
+Palette: `dictate <$Sections>` in the LIS application **and** in Microsoft Word, or it only works from the LIS.
+
+## `ReturnToWord`
+
+Validation, confirm the Word report for *this* case is open, `_<System>.TransferReportToWord`, then `MarkEvent`,
+`_Premium.UpdateStage`, `SaveAndFinalize`, restore the command document. On `false` the document is **not** released.
+Trigger `send report`, SpeechBox Editor.
+
+## `ReturnTo<LIS>`
+
+**Word editor - the save-back.** Saves Word into the LIS (PowerPath: F10), then handles the LIS's prompts in whatever
+order they come, and completes the status step. Palette: Microsoft Word, `return to <System>`.
+
+The status step follows the LIS's own case progression: with `NextStatus` blank it accepts the step the LIS pre-fills;
+with `NextStatus` set it enters it as an override and checks it took.
+
+**It never signs a case out.** If the step would be a sign-out status (`_<System>.SignoutStatuses`) it cancels the
+status update - and **returns `true`**. The report is saved; only the status is left alone, and CaseComplete must
+still go on to NextCase. Reserve `false` for a case the user genuinely has to finish (a prompt left for them, an
+override that did not take, a dialog that would not close).
+
+**Page editor - write the fields.** One call to `_<System>.WriteReportSection` per dictated top-level section, matched
+by the part's Label. Any section with nowhere to go: warn, return `false`, and do not release the document. Trigger
+`send report`, SpeechBox Editor.
+
+## `NextCase`
+
+Saves and clears the case in the LIS (`_<System>.SaveAndClearCase`). With a Word save-back it first waits for the Word
+report to close - it closes in its own time after the save. Every early return logs why.
+
+This is the **LIS** meaning of NextCase: close out the current case and reset the LIS for the next search. It is not
+viewer navigation (see the IMS section above).
+
+## `CaseComplete`
+
+`case complete`, SpeechBox Editor. Runs the returns that exist, then NextCase, stopping at the first step that did not
+finish. The `Wait(500)` after the Word step is deliberate: the next step checks that Report Builder has closed, and
+`SpeechBox.Close()` is not instant.
+
+## Palette items that point at the wrong class
+
+A PRO instance usually carries an older `VOScript.Standard.<System>` set alongside `VOScript.Starter`. PowerPath's
+`NextCase` palette item still pointed at `VOScript.Standard.PowerPath.NextCase` after the Starter rewrite. Check every
+item's class after scaffolding.
