@@ -279,7 +279,7 @@ Cross-script scratch space on the application:
 ```csharp
 Application.SetStateProperty("CaseNumber", caseNumber);
 string edition = StateProperty("Edition", "");     // "Premium" | "Classic"
-string openRB  = StateProperty("OpenRB", "No");    // "Yes" | "No"
+string openRB  = StateProperty("OpenRB", "False"); // "True" | "False"
 string role    = StateProperty("RoleCategory", "");// "GROSS" | "RESIDENT" | "SIGNOUT"
 ```
 
@@ -287,8 +287,8 @@ string role    = StateProperty("RoleCategory", "");// "GROSS" | "RESIDENT" | "SI
 them exactly:
 
 - `Edition` — `Classic` | `Premium`
-- `OpenRB` — `Yes` | `No`, set per User and per Role. **Not** `True`/`False`; a default of
-  `"False"` never equals a real value, so the comparison takes the wrong branch forever.
+- `OpenRB` — `True` | `False`, set per User and per Role. Compare against `"True"` exactly; a
+  `Yes`/`No` comparison never matches a real value, so it takes the wrong branch forever.
 - `RoleCategory` — `GROSS` | `RESIDENT` | `SIGNOUT`
 
 `CaseNumber` is **not** a defined property. It is created at runtime by whichever script calls
